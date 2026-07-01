@@ -3,11 +3,12 @@ import { setUser } from "../store/user";
 const api = process.env.EXPO_PUBLIC_API_URL!;
 
 export type PatchUserRequest = {
-  fName?: string;
-  lName?: string;
-  bio?: string;
-  profileImg?: string;
-  bannerImg?: string;
+  userId: string;
+  email: string;
+  userName: string;
+  passwordHash: string;
+  calorieGoal: number;
+  createdAt: string;
 };
 
 function cleanObject<T extends Record<string, any>>(obj: T): Partial<T> {
@@ -23,18 +24,26 @@ function cleanObject<T extends Record<string, any>>(obj: T): Partial<T> {
 }
 
 export async function getUsers() {
-  // if (api === undefined) {
-  //   throw new Error("API URL is not defined");
-  // }
   const res = await fetch(
-    `https://probable-guacamole-alpha.vercel.app/api/user`,
+    "https://pwevkkmrspvwgrwvclmr.supabase.co/rest/v1/users",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // Supabase requires both of these:
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!}`,
+      },
+    }
   );
+
   if (!res.ok) {
     throw new Error("Failed to fetch users");
   }
 
   return res.json();
 }
+// On this part----------------------------------------
 
 export async function getUser(id: string) {
   // if (api === undefined) {

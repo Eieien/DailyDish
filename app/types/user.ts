@@ -1,8 +1,8 @@
 export default interface User {
-  id: string;
+  userId: string;
   email: string;
   userName: string;
-  fname: string;
-  lName: string;
-  bio: string;
+  passwordHash: string;
+  calorieGoal: number;
+  createdAt: string;
 }
