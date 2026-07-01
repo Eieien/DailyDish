@@ -123,3 +123,32 @@ Remove-Item -Recurse -Force node_modules
 Remove-Item bun.lock
 bun install
 ```
+
+## Database (Drizzle ORM + Supabase)
+
+This project uses [Drizzle ORM](https://orm.drizzle.team/) with a direct Postgres connection to Supabase (not the `supabase-js` REST client). The ORM only runs server-side — do not import `db` from `app/` screens or components.
+
+### Setup
+
+1. In your Supabase project, go to **Project Settings > Database > Connection string > URI** and copy the direct connection string (port `5432`, not the pooler on `6543`).
+2. Add it to a `.env` file at the project root:
+
+   ```
+   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
+   ```
+
+### Project layout
+
+- `db/schema.ts` — Drizzle table definitions.
+- `db/index.ts` — Drizzle client (`drizzle-orm/postgres-js`), reads `DATABASE_URL` from the environment.
+- `drizzle.config.ts` — `drizzle-kit` config for generating and running migrations.
+
+### Migration workflow
+
+```bash
+bun run db:generate  # generate SQL migrations from db/schema.ts
+bun run db:migrate    # apply pending migrations to the database
+bun run db:push       # push schema changes directly, skipping migration files (prototyping only)
+bun run db:studio     # open Drizzle Studio to browse the database
+
+```
