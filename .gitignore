@@ -24,3 +24,9 @@ android
 
 #env
 .env
+
+# Ignore Clerk agents and skills
+.agents/
+.agents/skills/
+.agents/skills/clerk-cli/
+.agents/skills/clerk-custom-ui/
