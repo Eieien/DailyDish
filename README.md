@@ -99,6 +99,37 @@ refactor(api): simplify request handling
 chore: update dependencies
 ```
 
+## Branch Naming Conventions
+Branch names should follow this format:
+```
+<type>/<short-description>
+```
+
+Use lowercase, hyphen-separated words for the description, and keep it concise but descriptive.
+
+### Common branch types
+
+| Type | Description |
+|------|-------------|
+| `feature` | New feature work |
+| `fix` | Bug fixes |
+| `docs` | Documentation-only changes |
+| `refactor` | Code restructuring without behavior changes |
+| `chore` | Maintenance, tooling, or dependency updates |
+| `hotfix` | Urgent fixes applied directly to production |
+| `release` | Release preparation branches |
+
+### Examples
+
+```bash
+feature/google-sign-in
+fix/profile-crash-on-startup
+docs/update-installation-guide
+refactor/simplify-api-requests
+chore/update-dependencies
+hotfix/critical-auth-bug
+release/v1.2.0
+```
 ## If you encounter issues
 
 Clear the Metro cache:
