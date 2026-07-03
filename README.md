@@ -1,6 +1,19 @@
 # DailyDish
 Courtesy of Derick Angelo Yu for the original project
 
+## Folder structure
+
+```
+DailyDish/
+├── app/            # Expo Router routes — one file = one screen/route
+├── components/     # Reusable UI components
+├── db/             # Server-side only Drizzle ORM client + schema
+├── drizzle/        # Generated SQL migrations (drizzle-kit output)
+└── assets/         # Static images (icons, splash, favicon)
+```
+
+For a full breakdown of every file and a guide to Expo Router's file-based routing/architecture, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
 ## Prerequisites
 
 Install the following before getting started:
