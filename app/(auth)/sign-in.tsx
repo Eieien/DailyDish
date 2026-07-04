@@ -11,10 +11,13 @@ import { Feather as Icons } from "@expo/vector-icons";
 import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import { useEffect, useState } from "react";
 import { Redirect, useRouter } from "expo-router";
+// import { getUsers } from "../lib/user";
 
 const loginFailCounter = 6;
 
 export default function SignInScreen() {
+  // const des = getUsers();
+  // console.log(des)
   const signInCtx = useSignIn();
   const [loading, setLoading] = useState(false);
 

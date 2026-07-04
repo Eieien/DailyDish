@@ -16,6 +16,7 @@ export default function Home() {
     router.replace("/sign-in");
     return null;
   }
+  
 
   return (
     <View className={styles.container}>
