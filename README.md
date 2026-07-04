@@ -34,6 +34,8 @@ cd DailyDish
 
 ```bash
 bun install
+npx expo install @clerk/expo expo-secure-store expo-dev-client
+npm install react-redux
 ```
 
 ## Start the development server
