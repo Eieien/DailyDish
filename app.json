@@ -4,10 +4,14 @@
     "slug": "dailydish",
     "version": "1.0.0",
     "scheme": "dailydish",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
@@ -39,6 +43,13 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.eieien.dailydish"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0800c7c5-6bf9-472b-955a-b3ee034150e6"
       }
     }
   }
