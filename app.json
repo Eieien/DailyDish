@@ -3,7 +3,6 @@
     "name": "DailyDish",
     "slug": "dailydish",
     "version": "1.0.0",
-
     "scheme": "dailydish",
     "platforms": ["ios", "android", "web"],
     "web": {
@@ -19,20 +18,20 @@
           "image": "./assets/splash.png",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "@clerk/expo",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
-
       "tsconfigPaths": true
     },
-
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-
     "userInterfaceStyle": "light",
-
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
