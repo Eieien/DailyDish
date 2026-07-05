@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Text, Image } from "react-native";
+
+const botAvatar = require("../assets/bot-avatar.png");
 
 type Props = {
   date: string;
@@ -15,8 +16,8 @@ export default function DailyRecapCard({ date, message }: Props) {
         <Text className="text-xs text-[#8A6A55] mb-2">{date}</Text>
         <Text className="text-sm text-[#4A3B31] leading-5">{message}</Text>
       </View>
-      <View className="w-14 h-14 rounded-full bg-[#D2601A] items-center justify-center">
-        <Ionicons name="happy-outline" size={28} color="#FFFFFF" />
+      <View className="w-14 h-14 rounded-full  items-center justify-center overflow-hidden">
+        <Image source={botAvatar} className="w-full h-full" resizeMode="cover" />
       </View>
     </View>
   );

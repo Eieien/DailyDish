@@ -72,7 +72,7 @@ export default function HomeScreen() {
           />
         </ScrollView>
 
-        <AskAIButton onPress={() => {}} />
+        <AskAIButton onPress={() => router.push("/chat")} />
 
         <BottomNav active={activeTab} onChange={setActiveTab} />
       </View>

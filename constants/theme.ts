@@ -17,6 +17,11 @@ export const colors = {
   muted: '#8A7F79',
   border: '#EFE7E1',
   surface: '#FFFFFF',
+
+  // Macro progress bars.
+  proteinBar: '#7A2E3F',
+  fatBar: '#D4A844',
+  carbBar: '#C85A3A',
 } as const;
 
 /**
