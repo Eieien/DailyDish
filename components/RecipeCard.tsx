@@ -1,25 +1,32 @@
-import { View, Text } from "react-native";
+import React from "react";
+import { View, Text, Image, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Recipe } from "../data/types";
 
 type Props = {
-  title: string;
+  recipe: Recipe;
+  onPress: (recipe: Recipe) => void;
 };
 
-export default function RecipeCard({
-  title,
-}: Props) {
+export default function RecipeCard({ recipe, onPress }: Props) {
   return (
-    <View className="bg-white rounded-2xl p-4 mb-4 w-[48%]">
-
-      <View className="h-12 rounded-md bg-gray-200 mb-3" />
-
-      <Text className="font-bold text-base">
-        {title}
-      </Text>
-
-      <Text className="text-gray-500 mt-1">
-        Easy • 20 mins
-      </Text>
-
-    </View>
+    <Pressable
+      onPress={() => onPress(recipe)}
+      style={{ width: "48%" }}
+      className="bg-white rounded-2xl mb-4 overflow-hidden"
+    >
+      <Image source={{ uri: recipe.image }} className="w-full h-24" />
+      <View className="p-3">
+        <Text className="font-semibold text-[#2B2320]" numberOfLines={1}>
+          {recipe.title}
+        </Text>
+        <Text className="text-xs text-[#9C9088] mt-1" numberOfLines={2}>
+          {recipe.description}
+        </Text>
+      </View>
+      <View className="absolute bottom-3 right-3 w-7 h-7 rounded-full bg-white items-center justify-center border border-[#F0E4DA]">
+        <Ionicons name="arrow-up-outline" size={14} color="#D2601A" />
+      </View>
+    </Pressable>
   );
 }
