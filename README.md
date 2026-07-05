@@ -35,6 +35,7 @@ cd DailyDish
 ```bash
 bun install
 npx expo install @clerk/expo expo-secure-store expo-dev-client
+npm install @clerk/clerk-expo
 npm install react-redux
 ```
 

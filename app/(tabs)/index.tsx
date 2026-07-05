@@ -16,6 +16,7 @@ export default function Home() {
     router.replace("/sign-in");
     return null;
   }
+  console.log("Welcome to home page");
   
 
   return (
@@ -27,6 +28,7 @@ export default function Home() {
         </ScreenContent> */}
         <Pressable onPress={() => {
                   signOut();
+                  console.log("Logged Out");
                   router.replace("/sign-in");
                 }}
                 style={des.logout}>

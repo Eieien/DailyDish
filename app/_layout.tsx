@@ -5,6 +5,9 @@ import { tokenCache } from "@clerk/clerk-expo/token-cache";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { Stack } from 'expo-router';
+import { goBack } from 'expo-router/build/global-state/router';
+import { clerkClient } from '@clerk/nextjs/server';
+import { navigateDeprecated } from 'expo-router/build/react-navigation/routers/CommonActions';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -26,3 +29,5 @@ export default function Layout() {
     </ClerkProvider>
   );
 }
+
+
