@@ -1,12 +1,6 @@
-import { Stack, Link, } from 'expo-router';
-
 import { View, Pressable, Text, StyleSheet } from 'react-native';
 
-import { Button } from '@/components/Button';
-import { Container } from '@/components/Container';
-import { ScreenContent } from '@/components/ScreenContent';
 import { useClerk, useAuth } from "@clerk/clerk-expo";
-import { useState } from "react";
 import { router } from "expo-router";
 
 
