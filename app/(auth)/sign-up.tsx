@@ -71,6 +71,8 @@ export default function SignUpScreen() {
         }
         const userId = res.createdUserId || "";
         console.log("User ID:", userId);
+        console.log("Username:", userName);
+        console.log("Email:", email);
         // await postUser({
         //   id: userId,
         //   email: email.toLowerCase(),

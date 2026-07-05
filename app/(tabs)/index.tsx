@@ -5,18 +5,24 @@ import { View, Pressable, Text, StyleSheet } from 'react-native';
 import { Button } from '@/components/Button';
 import { Container } from '@/components/Container';
 import { ScreenContent } from '@/components/ScreenContent';
-import { useClerk } from "@clerk/clerk-expo";
+import { useClerk, useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { router } from "expo-router";
 
-export default function Home() {
-  const { isSignedIn, signOut } = useClerk();
 
-  if (!isSignedIn) {
-    router.replace("/sign-in");
-    return null;
-  }
-  console.log("Welcome to home page");
+
+export default function Home() {
+  const { userId, isSignedIn, isLoaded, getToken, signOut } = useAuth({
+    treatPendingAsSignedOut: false,
+  });
+  const token = getToken();
+  // const {  } = useClerk();
+
+  // if (!isSignedIn) {
+  //   router.replace("/sign-in");
+  //   // return null;
+  // }
+  console.log(userId, token);
   
 
   return (
