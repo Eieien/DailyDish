@@ -1,7 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 
 import { GEMINI_MODEL, SYSTEM_INSTRUCTION, GENERATION_CONFIG } from '@/constants/ai';
-import type { ChatMessage } from '@/types/chat';
+import type { ChatMessage } from '@/app/types/chat';
 
 export async function POST(request: Request) {
   const apiKey = process.env.GEMINI_API_KEY;

@@ -1,57 +1,91 @@
-import { View, Pressable, Text, StyleSheet } from 'react-native';
+import React, { useState } from "react";
+import { View, ScrollView, StatusBar } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-import { useClerk, useAuth } from "@clerk/clerk-expo";
-import { router } from "expo-router";
+import Header from "../../components/Header";
+import SearchBar from "../../components/SearchBar";
+import DailyRecapCard from "../../components/DailyRecapCard";
+import CaloriesSummary from "../../components/CaloriesSummary";
+import TodaysMeals from "../../components/TodaysMeals";
+import RecipesSection from "../../components/RecipesSection";
+import BottomNav from "../../components/BottomNav";
+import AskAIButton from "../../components/AskAIButton";
 
+import { dailyProgress, todaysMeals, recipes } from "../../data/mockData";
+import { Recipe } from "../../data/types";
+import { MealEntry } from "../../data/types";
+import { getUsers } from "../lib/user";
 
+export default function HomeScreen() {
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [meals, setMeals] = useState<MealEntry[]>(todaysMeals);
+  const [activeTab, setActiveTab] = useState<"home" | "calendar" | "grid" | "profile">(
+    "home"
+  );
 
-export default function Home() {
-  const { userId, isSignedIn, isLoaded, getToken, signOut } = useAuth({
-    treatPendingAsSignedOut: false,
-  });
-  const token = getToken();
-  // const {  } = useClerk();
+  const toggleMeal = (id: string) => {
+    setMeals((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, completed: !m.completed } : m))
+    );
+  };
 
-  // if (!isSignedIn) {
-  //   router.replace("/sign-in");
-  //   // return null;
-  // }
-  console.log(userId, token);
-  
+  const openRecipe = (recipe: Recipe) => {
+    router.push(`/recipe/${recipe.id}`);
+  };
+
+  // const [users, setUsers] = useState<any[]>([]);
+  // const fetchUsers = async () => {
+  //   const data = await getUsers(); // Expo Router resolves this internally
+  //   setUsers(data);
+  // };
+  // fetchUsers();
+  // console.log(users);
+
 
   return (
-    <View className={styles.container}>
-      {/* <Stack.Screen options={{ title: 'Home' }} />
-      <Container>
-        <ScreenContent path="app/index.tsx" title="Home">
-          
-        </ScreenContent> */}
-        <Pressable onPress={() => {
-                  signOut();
-                  console.log("Logged Out");
-                  router.replace("/sign-in");
-                }}
-                style={des.logout}>
-          <Text>
-            Log Out
-          </Text>
-        </Pressable>
-        {/* <Link href={{ pathname: '/details', params: { name: 'Dan' } }} asChild>
-          <Button title="Show Details" />
-        </Link> */}
+    <SafeAreaView className="flex-1 bg-[#FDF3EC]" edges={["top"]}>
+      <StatusBar barStyle="dark-content" />
 
-      {/* </Container> */}
-    </View>
+      <View className="flex-1">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 24 }}
+        >
+          <Header
+            name="Tom"
+            subtitle="BLABLABLALA"
+            avatarUrl="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200"
+          />
+
+          <SearchBar
+            value={search}
+            onChangeText={setSearch}
+            onPressFilter={() => {}}
+          />
+
+          <DailyRecapCard
+            date="July 2, 2026"
+            message="Great job! You're 750 kcal under your daily goal. Keep it up! 👍"
+          />
+
+          <CaloriesSummary progress={dailyProgress} />
+
+          <TodaysMeals meals={meals} onToggle={toggleMeal} />
+
+          <RecipesSection
+            title="My Recipes"
+            recipes={recipes}
+            onPressRecipe={openRecipe}
+            onPressSeeAll={() => {}}
+          />
+        </ScrollView>
+
+        <AskAIButton onPress={() => router.push("/chat")} />
+
+        <BottomNav active={activeTab} onChange={setActiveTab} />
+      </View>
+    </SafeAreaView>
   );
 }
-const des = StyleSheet.create({
-  logout:{
-    marginTop: 100
-  }
-})
-
-const styles = {
-  container: 'flex flex-1 bg-white',
-};
-
-

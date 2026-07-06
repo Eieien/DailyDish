@@ -8,9 +8,9 @@ import {
   ChatQuickActions,
   ChatInputBar,
   TypingIndicator,
-} from '@/components/chat';
-import { sendChatMessage } from '@/lib/ai';
-import type { ChatMessage } from '@/types/chat';
+} from '../components/chat';
+import { sendChatMessage } from './lib/ai';
+import type { ChatMessage } from './types/chat';
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {

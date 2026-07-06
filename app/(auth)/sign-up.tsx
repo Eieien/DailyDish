@@ -11,7 +11,7 @@ import { useSignUp } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import Checkbox from "expo-checkbox";
-// import { postUser } from "../lib/user";
+import { postUsers } from "../lib/user";
 
 export default function SignUpScreen() {
   const signUpCtx = useSignUp();
@@ -72,12 +72,12 @@ export default function SignUpScreen() {
         const userId = res.createdUserId || "";
         console.log("User ID:", userId);
         console.log("Username:", userName);
-        console.log("Email:", email);
-        // await postUser({
-        //   id: userId,
-        //   email: email.toLowerCase(),
-        //   userName: userName,
-        // });
+        console.log("pass:", password);
+        await postUsers({
+          id: userId,
+          name: userName,
+          password: password,
+        });
 
         setPendingVerification(false);
         router.replace("/(tabs)");

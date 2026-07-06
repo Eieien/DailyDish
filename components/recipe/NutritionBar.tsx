@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import type { RecipeNutrition } from '@/types/recipe';
+import type { RecipeNutrition } from '@/app/types/recipe';
 import { colors } from '@/constants/theme';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];

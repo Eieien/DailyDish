@@ -1,3 +1,31 @@
+export async function getUsers() {
+  const res = await fetch("/api/users");
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch users");
+  }
+
+  return res.json();
+}
+// export async function postUser(request: {
+//   id: string;
+//   email: string;
+//   userName: string;
+// }) {
+
+export async function postUsers(request :{
+    id: string;
+    name : string;
+    password : string;
+}) {
+  const res = await fetch("/api/users");
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch users");
+  }
+  return res.json();
+}
+
 // import { setUser } from "../store/user";
 
 // const apiKey = process.env.SUPABASE_PUBLISHABLE_KEY;

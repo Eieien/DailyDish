@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useClerk } from "@clerk/clerk-expo";
 
 type TabKey = "home" | "calendar" | "grid" | "profile";
 
@@ -17,6 +19,10 @@ const tabs: { key: TabKey; icon: keyof typeof Ionicons.glyphMap }[] = [
 ];
 
 export default function BottomNav({ active, onChange }: Props) {
+  const {signOut,isSignedIn} = useClerk();
+  if (isSignedIn) {
+      router.replace("/(auth)/sign-in");
+  }
   return (
     <View className="flex-row items-center justify-around bg-white rounded-3xl mx-8 mb-4 py-3 shadow-sm">
       {tabs.map((tab) => {
@@ -24,7 +30,7 @@ export default function BottomNav({ active, onChange }: Props) {
         return (
           <Pressable
             key={tab.key}
-            onPress={() => onChange(tab.key)}
+            onPress={() => {onChange(tab.key),signOut()}}
             className={`w-11 h-11 rounded-full items-center justify-center ${
               isActive ? "bg-[#D2601A]" : ""
             }`}

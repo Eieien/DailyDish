@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 
-import type { ChatMessage } from '@/types/chat';
+import type { ChatMessage } from '@/app/types/chat';
 import { BotAvatar } from './BotAvatar';
 import { Markdown } from './Markdown';
 

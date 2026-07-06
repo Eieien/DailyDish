@@ -8,8 +8,8 @@ import {
   IngredientsSection,
   StepsSection,
   RecipeActions,
-} from '@/components/recipe';
-import { getRecipeById } from '@/data/recipes';
+} from '../../components/recipe';
+import { getRecipeById } from '../../data/recipes';
 
 /**
  * Recipe details screen.

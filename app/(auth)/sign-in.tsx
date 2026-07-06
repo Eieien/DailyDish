@@ -42,7 +42,7 @@ export default function SignInScreen() {
     }
 
     if (step === "complete") {
-      router.replace("/(tabs)");
+      router.replace("../index");
     }
   }, [step]);
 
