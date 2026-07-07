@@ -10,6 +10,27 @@ export default function TabLayout() {
           headerShown: false,
         }}
       />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: "Progress",
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="recipe"
+        options={{
+          title: "Recipe",
+          // headerShown: false,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          // headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

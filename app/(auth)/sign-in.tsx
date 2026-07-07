@@ -42,11 +42,13 @@ export default function SignInScreen() {
     }
 
     if (step === "complete") {
+      
       router.replace("../index");
     }
   }, [step]);
 
   if (isLoaded && isSignedIn) {
+    console.log("Skip to home page");
     return <Redirect href="/(tabs)" />;
   }
 
