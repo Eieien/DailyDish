@@ -4,7 +4,7 @@ import { boolean, check, index, integer, jsonb, pgTable, text, timestamp, uuid }
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
-  password: text('password').notNull(),
+  // password: text('password').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   isActive: boolean('is_active').default(true).notNull(),
@@ -14,7 +14,7 @@ export const recipes = pgTable(
   'recipes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
+    userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
@@ -32,7 +32,7 @@ export const meal = pgTable(
   'meal',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
+    userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
@@ -48,8 +48,8 @@ export const meal = pgTable(
 export const sessions = pgTable(
   'sessions',
   {
-    id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id')
+    id: text('id').primaryKey(),
+    userId: text('user_id')
       .notNull()
       .references(() => user.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
@@ -63,7 +63,7 @@ export const chatMessages = pgTable(
   'chat_messages',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    sessionId: uuid('session_id')
+    sessionId: text('session_id')
       .notNull()
       .references(() => sessions.id, { onDelete: 'cascade' }),
     role: text('role').notNull(),

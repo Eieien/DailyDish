@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useClerk } from "@clerk/clerk-expo";
 
 import Header from "../../components/Header";
 import SearchBar from "../../components/SearchBar";
@@ -18,6 +19,7 @@ import { MealEntry } from "../../data/types";
 import { getUsers } from "../lib/user";
 
 export default function HomeScreen() {
+  const {session} = useClerk();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [meals, setMeals] = useState<MealEntry[]>(todaysMeals);
@@ -41,7 +43,7 @@ export default function HomeScreen() {
   //   setUsers(data);
   // };
   // fetchUsers();
-  // console.log(users);
+  console.log(session);
 
 
   return (

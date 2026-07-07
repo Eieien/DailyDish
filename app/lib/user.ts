@@ -16,7 +16,6 @@ export async function getUsers() {
 export async function postUsers(request :{
     id: string;
     name : string;
-    password : string;
 }) {
   const res = await fetch("/api/users");
 
