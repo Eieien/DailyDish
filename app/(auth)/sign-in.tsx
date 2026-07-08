@@ -1,23 +1,20 @@
 import {
   View,
   TextInput,
-  Button,
   Pressable,
   Text,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from "react-native";
-import { Feather as Icons } from "@expo/vector-icons";
-import { useSignIn, useAuth, useClerk } from "@clerk/clerk-expo";
+import { useSignIn, useAuth } from "@clerk/clerk-expo";
 import { useEffect, useState } from "react";
-import { Redirect, useRouter } from "expo-router";
-// import { getUsers } from "../lib/user";
+import { useRouter } from "expo-router";
+import Svg, { Path } from "react-native-svg";
 
 const loginFailCounter = 6;
 
 export default function SignInScreen() {
-  // const des = getUsers();
-  // console.log(des)
   const signInCtx = useSignIn();
   const [loading, setLoading] = useState(false);
 
@@ -30,29 +27,24 @@ export default function SignInScreen() {
   const isLoaded = signInCtx?.isLoaded;
 
   const [step, setStep] = useState("idle");
-  const [status, setStatus] = useState<any>();
   const router = useRouter();
-  const { isSignedIn, session } = useClerk();
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     if (step === "2fa") {
-      console.log(status);
-      router.push("/verify-2fa")
-      // router.push("/verify-2fa");
+      router.push("/verify-2fa");
     }
 
     if (step === "complete") {
-      router.replace("../index");
+      router.replace("/(tabs)");
     }
   }, [step]);
 
-  // useEffect(() => {
+    useEffect(() => {
     if (isLoaded && isSignedIn) {
-      console.log(session?.user.id, session?.user.username);
-      console.log("Skip to home page");
-      return <Redirect href="/(tabs)" />;
+      router.replace("/(tabs)");
     }
-  // }, [isSignedIn]);
+  }, [isLoaded, isSignedIn]);
 
   const onSignIn = async () => {
     if (!isLoaded || !signIn || loading) return;
@@ -68,7 +60,7 @@ export default function SignInScreen() {
 
       if (res.status === "needs_second_factor") {
         const emailFactor = res.supportedSecondFactors?.find(
-          (f) => f.strategy === "email_code",
+          (f) => f.strategy === "email_code"
         );
 
         if (!emailFactor) return;
@@ -77,8 +69,8 @@ export default function SignInScreen() {
           strategy: "email_code",
           emailAddressId: emailFactor.emailAddressId,
         });
+
         setStep("2fa");
-        setStatus(res.supportedSecondFactors);
         return;
       }
 
@@ -86,6 +78,7 @@ export default function SignInScreen() {
         if (setActive) {
           await setActive({ session: res.createdSessionId });
         }
+
         setStep("complete");
         return;
       }
@@ -94,7 +87,7 @@ export default function SignInScreen() {
     } catch (err: any) {
       setError(
         err?.errors?.[0]?.message ||
-          `fucking Login fail counter: ${loginFailCounter}`,
+          `Login failed. Counter: ${loginFailCounter}`
       );
     } finally {
       setLoading(false);
@@ -103,39 +96,91 @@ export default function SignInScreen() {
 
   return (
     <View style={styles.background}>
-      <Text style={styles.title}>Log In</Text>
-      <View>
-        <View style={styles.inputBox}>
-          <Icons name="user" size={20} color="#fff" style={styles.icon} />
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="white"
-            onChangeText={setEmail}
-            style={styles.input}
+      <View style={styles.topWave}>
+        <Svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 390 236"
+          preserveAspectRatio="none"
+        >
+          <Path
+            d="M410.644 -168.367L7.28064 -148.081C7.28064 -148.081 -52.8418 420.383 21.8827 173.497C96.6071 -73.3895 327.35 192.708 425.246 153.211C523.142 113.714 410.644 -168.367 410.644 -168.367Z"
+            fill="#C85A3A"
+            fillOpacity={0.82}
           />
-        </View>
-        <View style={styles.inputBox}>
-          <Icons name="lock" size={20} color="#fff" style={styles.icon} />
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="white"
-            secureTextEntry
-            onChangeText={setPassword}
-            style={styles.input}
+          <Path
+            d="M389.47 -205.4L-13.8937 -185.115C-13.8937 -185.115 -74.0161 383.349 0.708378 136.463C75.4328 -110.423 306.175 155.674 404.072 116.177C501.968 76.6806 389.47 -205.4 389.47 -205.4Z"
+            fill="#C85A3A"
           />
-        </View>
+        </Svg>
+      </View>
+
+      <View style={styles.content}>
+        <Image
+          source={require("../../assets/DDlogo.png")}
+          style={styles.logo}
+        />
+
+        <Text style={styles.title}>Welcome Back!</Text>
+        <Text style={styles.subtitle}>Log in to your account</Text>
+
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor="#9E9E9E"
+          onChangeText={setEmail}
+          value={email}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={styles.input}
+        />
+
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor="#9E9E9E"
+          secureTextEntry
+          onChangeText={setPassword}
+          value={password}
+          style={styles.input}
+        />
+
+        <Pressable
+          style={[styles.logInBtn, loading && styles.disabledButton]}
+          onPress={onSignIn}
+          disabled={loading}
+        >
+          <Text style={styles.logIn}>
+            {loading ? "Signing In..." : "Sign In"}
+          </Text>
+        </Pressable>
+
         <View style={styles.flexError}>
-          <Text style={styles.white}>Don't have an account?</Text>
+          <Text style={styles.gray}>Don’t have an account?</Text>
+
           <TouchableOpacity onPress={() => router.push("/sign-up")}>
-            <Text style={[{ fontWeight: "bold", color: "#e74545de" }]}>
-              Sign Up
-            </Text>
+            <Text style={styles.signUpText}>Sign Up</Text>
           </TouchableOpacity>
         </View>
-        <Pressable style={styles.logInBtn} onPress={onSignIn}>
-          <Text style={styles.logIn}>Log In</Text>
-        </Pressable>
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
+      </View>
+
+      <View style={styles.bottomWave}>
+        <Svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 390 236"
+          preserveAspectRatio="none"
+        >
+          <Path
+            d="M410.644 -168.367L7.28064 -148.081C7.28064 -148.081 -52.8418 420.383 21.8827 173.497C96.6071 -73.3895 327.35 192.708 425.246 153.211C523.142 113.714 410.644 -168.367 410.644 -168.367Z"
+            fill="#C85A3A"
+            fillOpacity={0.82}
+          />
+          <Path
+            d="M389.47 -205.4L-13.8937 -185.115C-13.8937 -185.115 -74.0161 383.349 0.708378 136.463C75.4328 -110.423 306.175 155.674 404.072 116.177C501.968 76.6806 389.47 -205.4 389.47 -205.4Z"
+            fill="#C85A3A"
+          />
+        </Svg>
       </View>
     </View>
   );
@@ -144,68 +189,116 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    gap: 24,
-    padding: 32,
-    backgroundColor: "#10082ce0",
+    backgroundColor: "#FAF7F4",
+    overflow: "hidden",
   },
-  title: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 40,
-    marginTop: 100,
-    marginBottom: 1,
+
+  topWave: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 145,
+    zIndex: 1,
   },
-  inputBox: {
-    borderWidth: 2,
-    borderColor: "#e74545de",
-    borderRadius: 30,
-    marginVertical: 15,
-    display: "flex",
-    flexDirection: "row",
-    width: 330,
+
+  bottomWave: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 165,
+    zIndex: 1,
+    transform: [{ rotate: "180deg" }],
   },
-  icon: {
+
+  content: {
+    flex: 1,
+    justifyContent: "center",
+    paddingHorizontal: 34,
+    zIndex: 10,
+  },
+
+  logo: {
+    width: 190,
+    height: 72,
+    resizeMode: "contain",
     alignSelf: "center",
-    paddingLeft: 15,
-    paddingRight: 3,
-    // backgroundColor: "#10082ce0",
+    marginBottom: 6,
   },
+
+  title: {
+    color: "#C85A3A",
+    fontWeight: "bold",
+    fontSize: 18,
+    textAlign: "center",
+  },
+
+  subtitle: {
+    color: "#C85A3A",
+    fontWeight: "600",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 34,
+  },
+
   input: {
-    color: "#ffffffb2",
-    height: 50,
-    width: 280,
-    fontSize: 20,
+    height: 35,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2DDD9",
+    borderRadius: 7,
+    paddingHorizontal: 12,
+    color: "#333",
+    fontSize: 12,
+    marginBottom: 19,
   },
+
   logInBtn: {
-    backgroundColor: "#e74545de",
-    marginTop: 20,
-    borderRadius: 20,
-    paddingVertical: 6,
+    height: 36,
+    backgroundColor: "#C85A3A",
+    borderRadius: 8,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 4,
   },
+
+  disabledButton: {
+    opacity: 0.6,
+  },
+
   logIn: {
     textAlign: "center",
     color: "#fff",
-    fontWeight: "bold",
-    fontSize: 20,
+    fontWeight: "500",
+    fontSize: 14,
   },
-  signUp: {
-    display: "flex",
-    flexDirection: "row",
-    alignSelf: "center",
-    gap: 40,
-    marginTop: 270,
-  },
-  white: {
-    color: "#fff",
-  },
-  error: {
-    color: "#fff",
-    paddingBottom: 15,
-  },
+
   flexError: {
-    display: "flex",
     flexDirection: "row",
-    justifyContent: "flex-start",
-    gap: 6,
+    justifyContent: "space-between",
+    marginTop: 22,
+  },
+
+  gray: {
+    color: "#8E8E8E",
+    fontSize: 12,
+  },
+
+  signUpText: {
+    color: "#C85A3A",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+
+  error: {
+    color: "#C85A3A",
+    textAlign: "center",
+    marginTop: 14,
+    fontSize: 12,
   },
 });
