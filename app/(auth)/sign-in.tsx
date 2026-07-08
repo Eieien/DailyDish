@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Feather as Icons } from "@expo/vector-icons";
-import { useSignIn, useAuth } from "@clerk/clerk-expo";
+import { useSignIn, useAuth, useClerk } from "@clerk/clerk-expo";
 import { useEffect, useState } from "react";
 import { Redirect, useRouter } from "expo-router";
 // import { getUsers } from "../lib/user";
@@ -32,7 +32,7 @@ export default function SignInScreen() {
   const [step, setStep] = useState("idle");
   const [status, setStatus] = useState<any>();
   const router = useRouter();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, session } = useClerk();
 
   useEffect(() => {
     if (step === "2fa") {
@@ -48,6 +48,7 @@ export default function SignInScreen() {
 
   // useEffect(() => {
     if (isLoaded && isSignedIn) {
+      console.log(session?.user.id, session?.user.username);
       console.log("Skip to home page");
       return <Redirect href="/(tabs)" />;
     }
