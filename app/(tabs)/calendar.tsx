@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AskAIButton from "../../components/AskAIButton";
 import {
   View,
   Text,
@@ -432,13 +433,7 @@ export default function CalendarScreen() {
           )}
         </ScrollView>
 
-        {/* Floating Robot AI Button */}
-        <View className="absolute bottom-24 right-5 items-center z-50">
-          <View className="flex-row mb-0.5" style={{ gap: 3 }}>
-            <View className="w-0.5 h-1.5 bg-[#C85A3A] rounded-full transform -rotate-12" />
-            <View className="w-0.5 h-2 bg-[#C85A3A] rounded-full" />
-            <View className="w-0.5 h-1.5 bg-[#C85A3A] rounded-full transform rotate-12" />
-          </View>
+        <AskAIButton onPress={() => router.push("/chat")} />
           
           <Pressable
             onPress={() => router.push("/chat")}
