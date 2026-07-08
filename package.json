@@ -23,6 +23,7 @@
     "@expo/log-box": "^56.0.12",
     "@expo/vector-icons": "^15.0.2",
     "@google/genai": "^2.10.0",
+    "@react-native-community/slider": "^5.2.0",
     "@react-navigation/native": "^7.1.6",
     "@reduxjs/toolkit": "^2.12.0",
     "drizzle-orm": "^0.45.2",
