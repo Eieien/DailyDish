@@ -76,7 +76,6 @@ export default function SignUpScreen() {
         await postUsers({
           id: userId,
           name: userName,
-          password: password,
         });
 
         setPendingVerification(false);

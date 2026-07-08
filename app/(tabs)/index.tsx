@@ -43,7 +43,7 @@ export default function HomeScreen() {
   //   setUsers(data);
   // };
   // fetchUsers();
-  console.log(session);
+  // console.log(session);
 
 
   return (

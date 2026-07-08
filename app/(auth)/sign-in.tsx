@@ -42,15 +42,16 @@ export default function SignInScreen() {
     }
 
     if (step === "complete") {
-      
       router.replace("../index");
     }
   }, [step]);
 
-  if (isLoaded && isSignedIn) {
-    console.log("Skip to home page");
-    return <Redirect href="/(tabs)" />;
-  }
+  // useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      console.log("Skip to home page");
+      return <Redirect href="/(tabs)" />;
+    }
+  // }, [isSignedIn]);
 
   const onSignIn = async () => {
     if (!isLoaded || !signIn || loading) return;

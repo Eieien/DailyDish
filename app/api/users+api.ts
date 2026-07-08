@@ -10,7 +10,6 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json();
-//   const { id, name,email,created_at, updated_at   } = body;
 
   await dbInstance.insert(user).values(body);
 

@@ -10,7 +10,8 @@ import AskAIButton from "../../components/AskAIButton";
 import { dailyProgress, todaysMeals, recipes } from "../../data/mockData";
 import { Recipe } from "../../data/types";
 import { MealEntry } from "../../data/types";
-import { getUsers } from "../lib/user";
+import { postUsers, getUsers } from "../lib/user";
+
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -34,19 +35,28 @@ export default function HomeScreen() {
 //    useEffect(() => {
         
 //     }, [isSignedIn]);
-    if(!isSignedIn){
-            console.log("back to sign in")
-            router.replace('/sign-in');
-        }
+    // if(!isSignedIn){
+    //         console.log("back to sign in")
+    //         router.replace('/sign-in');
+    //     }
   
 
-  // const [users, setUsers] = useState<any[]>([]);
-  // const fetchUsers = async () => {
-  //   const data = await getUsers(); // Expo Router resolves this internally
-  //   setUsers(data);
-  // };
-  // fetchUsers();
-  // console.log(users);
+  const [users, setUsers] = useState<any[]>([]);
+  const fetchUsers = async () => {
+    const data = await getUsers(); // Expo Router resolves this internally
+    setUsers(data);
+  };
+  
+
+  const test = async () =>{
+    await postUsers({
+      id: "user_3GDnKs4dxDTXUIctu0XOimtEPyC",
+      name: "rin",
+    });
+    console.log("push user");
+    fetchUsers();
+    console.log(users);
+  }
 
 
   return (
@@ -63,6 +73,10 @@ export default function HomeScreen() {
             perhaps clerk takes some time to operate  */}
             <Text> Log out</Text>
           </Pressable>
+
+          {/* <Pressable onPress={() => {test(), console.log("add user"), router.replace('/settings');}}> 
+            <Text> test user</Text>
+          </Pressable> */}
 
         </ScrollView>
 

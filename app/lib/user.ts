@@ -7,23 +7,25 @@ export async function getUsers() {
 
   return res.json();
 }
-// export async function postUser(request: {
-//   id: string;
-//   email: string;
-//   userName: string;
-// }) {
 
-export async function postUsers(request :{
-    id: string;
-    name : string;
+export async function postUsers(request: {
+  id: string;
+  name: string;
 }) {
-  const res = await fetch("/api/users");
+  const res = await fetch("/api/users", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch users");
+    throw new Error("Failed to create user");
   }
   return res.json();
 }
+
 
 // import { setUser } from "../store/user";
 

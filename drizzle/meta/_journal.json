@@ -15,6 +15,13 @@
       "when": 1783368663696,
       "tag": "0001_omniscient_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783513425319,
+      "tag": "0002_silly_bloodscream",
+      "breakpoints": true
     }
   ]
 }
