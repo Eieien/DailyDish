@@ -1,17 +1,20 @@
 import {
   View,
   TextInput,
-  Button,
-  Text,
   Pressable,
+  Text,
+  TouchableOpacity,
   StyleSheet,
+  Image,
 } from "react-native";
-import { Feather as Icons } from "@expo/vector-icons";
 import { useSignUp } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import Checkbox from "expo-checkbox";
 import { postUsers } from "../lib/user";
+import Svg, { Path } from "react-native-svg";
+
+const loginFailCounter = 6;
 
 export default function SignUpScreen() {
   const signUpCtx = useSignUp();
@@ -20,6 +23,7 @@ export default function SignUpScreen() {
   const signUp = signUpCtx?.signUp;
   const setActive = signUpCtx?.setActive;
   const isLoaded = signUpCtx?.isLoaded;
+
   const [isChecked, setChecked] = useState(false);
 
   const [userName, setUserName] = useState("");
@@ -46,8 +50,8 @@ export default function SignUpScreen() {
         await signUp.prepareEmailAddressVerification({
           strategy: "email_code",
         });
-        console.log("sending code");
 
+        console.log("sending code");
         setPendingVerification(true);
       }
     } catch (err: any) {
@@ -69,17 +73,21 @@ export default function SignUpScreen() {
         if (setActive) {
           await setActive({ session: res.createdSessionId });
         }
+
         const userId = res.createdUserId || "";
+
         console.log("User ID:", userId);
         console.log("Username:", userName);
         console.log("pass:", password);
+
         await postUsers({
           id: userId,
           name: userName,
         });
 
         setPendingVerification(false);
-        router.replace("/(tabs)");
+        router.replace("/diet-goal");
+
       } else {
         setError("Verification not complete");
       }
@@ -93,108 +101,151 @@ export default function SignUpScreen() {
 
   if (!isLoaded || !signUp) {
     return (
-      <View>
-        <Text>Loading...</Text>
+      <View style={styles.background}>
+        <Text style={styles.title}>Loading...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.background}>
-      {!pendingVerification ? (
-        <>
-          <Text style={styles.title}>Sign Up</Text>
-          <View>
-            <View style={styles.inputBox}>
-              <Icons name="user" size={20} color="#fff" style={styles.icon} />
-              <TextInput
-                placeholder="Username"
-                placeholderTextColor="white"
-                onChangeText={setUserName}
-                style={styles.input}
-              />
-            </View>
-            <View style={styles.inputBox}>
-              <Icons name="mail" size={20} color="#fff" style={styles.icon} />
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor="white"
-                onChangeText={setEmail}
-                style={styles.input}
-              />
-            </View>
-            <View style={styles.inputBox}>
-              <Icons name="lock" size={20} color="#fff" style={styles.icon} />
-              <TextInput
-                placeholder="Password"
-                placeholderTextColor="white"
-                secureTextEntry
-                onChangeText={setPassword}
-                style={styles.input}
-              />
-            </View>
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <View style={styles.flexError}>
+      <View style={styles.topWave}>
+        <Svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 390 236"
+          preserveAspectRatio="none"
+        >
+          <Path
+            d="M410.644 -168.367L7.28064 -148.081C7.28064 -148.081 -52.8418 420.383 21.8827 173.497C96.6071 -73.3895 327.35 192.708 425.246 153.211C523.142 113.714 410.644 -168.367 410.644 -168.367Z"
+            fill="#C85A3A"
+            fillOpacity={0.82}
+          />
+          <Path
+            d="M389.47 -205.4L-13.8937 -185.115C-13.8937 -185.115 -74.0161 383.349 0.708378 136.463C75.4328 -110.423 306.175 155.674 404.072 116.177C501.968 76.6806 389.47 -205.4 389.47 -205.4Z"
+            fill="#C85A3A"
+          />
+        </Svg>
+      </View>
+
+      <View style={styles.content}>
+        <Text style={styles.step}>Step 1 of 2</Text>
+
+        <Image
+          source={require("../../assets/DDlogo.png")}
+          style={styles.logo}
+        />
+
+        {!pendingVerification ? (
+          <>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Let's get you started!</Text>
+
+            <TextInput
+              placeholder="Username"
+              placeholderTextColor="#9E9E9E"
+              onChangeText={setUserName}
+              value={userName}
+              style={styles.input}
+            />
+
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#9E9E9E"
+              onChangeText={setEmail}
+              value={email}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              style={styles.input}
+            />
+
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#9E9E9E"
+              secureTextEntry
+              onChangeText={setPassword}
+              value={password}
+              style={styles.input}
+            />
+
+            <View style={styles.termsRow}>
               <Checkbox
                 value={isChecked}
                 onValueChange={setChecked}
-                color={isChecked ? "#e74545de" : undefined}
+                color={isChecked ? "#C85A3A" : undefined}
               />
-              <Pressable style={styles.flex}>
-                <Text style={styles.white}> I Agree with</Text>
-                <Text style={{ color: "#e74545de" }}>privacy</Text>
-                <Text style={styles.white}>and</Text>
-                <Text style={{ color: "#e74545de" }}>policy</Text>
+
+              <Pressable style={styles.termsTextRow}>
+                <Text style={styles.gray}>I agree with </Text>
+                <Text style={styles.linkText}>Privacy </Text>
+                <Text style={styles.gray}>and </Text>
+                <Text style={styles.linkText}>Policy</Text>
               </Pressable>
             </View>
 
-            <Pressable onPress={onSignUp}>
-              <Text style={styles.signUp}>Sign Up</Text>
-            </Pressable>
-            {/* <Button title="Sign Up" onPress={onSignUp} /> */}
-          </View>
-          <View style={styles.logIn}>
-            <Text style={styles.white}>Already have an account?</Text>
-            <Pressable onPress={() => router.push("/sign-in")}>
-              <Text style={[{ fontWeight: "bold", color: "#e74545de" }]}>
-                Log In
-              </Text>
-            </Pressable>
-          </View>
-        </>
-      ) : (
-        <View>
-          <Text style={[styles.white, { marginTop: 250 }]}>
-            Enter the 6 digit code sent to your email.
-          </Text>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <View style={styles.inputBox}>
-            <Text
-              style={[
-                styles.white,
-                { alignSelf: "center", paddingEnd: 10, fontSize: 17 },
-              ]}
-            >
-              Code:
+            <Pressable style={styles.button} onPress={onSignUp}>
+              <Text style={styles.buttonText}>Sign Up</Text>
+            </Pressable>
+
+            <View style={styles.bottomRow}>
+              <Text style={styles.gray}>Already have an account?</Text>
+
+              <TouchableOpacity onPress={() => router.push("/sign-in")}>
+                <Text style={styles.linkText}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        ) : (
+          <>
+            <Text style={styles.title}>Verify Email</Text>
+            <Text style={styles.subtitle}>
+              Enter the 6 digit code sent to your email
             </Text>
+
             <TextInput
               placeholder="ex. 123456"
-              placeholderTextColor={styles.white.color}
+              placeholderTextColor="#9E9E9E"
               onChangeText={setCode}
+              value={code}
               keyboardType="number-pad"
               style={styles.input}
             />
-          </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
-          <Pressable onPress={onVerify}>
-            <Text style={{ color: "white" }}>Resend code</Text>
-          </Pressable>
-          <Pressable onPress={onVerify}>
-            <Text style={styles.signUp}>VERIFY</Text>
-          </Pressable>
-        </View>
-      )}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+
+            <Pressable onPress={onVerify}>
+              <Text style={styles.resendText}>Resend code</Text>
+            </Pressable>
+
+            <Pressable style={styles.button} onPress={onVerify}>
+              <Text style={styles.buttonText}>
+                {isVerifying ? "Verifying..." : "Verify"}
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </View>
+
+      <View style={styles.bottomWave}>
+        <Svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 390 236"
+          preserveAspectRatio="none"
+        >
+          <Path
+            d="M410.644 -168.367L7.28064 -148.081C7.28064 -148.081 -52.8418 420.383 21.8827 173.497C96.6071 -73.3895 327.35 192.708 425.246 153.211C523.142 113.714 410.644 -168.367 410.644 -168.367Z"
+            fill="#C85A3A"
+            fillOpacity={0.82}
+          />
+          <Path
+            d="M389.47 -205.4L-13.8937 -185.115C-13.8937 -185.115 -74.0161 383.349 0.708378 136.463C75.4328 -110.423 306.175 155.674 404.072 116.177C501.968 76.6806 389.47 -205.4 389.47 -205.4Z"
+            fill="#C85A3A"
+          />
+        </Svg>
+      </View>
     </View>
   );
 }
@@ -202,79 +253,147 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    gap: 24,
-    padding: 32,
-    // justifyContent: "center",
-    backgroundColor: "#10082ce0",
+    backgroundColor: "#FAF7F4",
+    overflow: "hidden",
   },
-  title: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 40,
-    marginTop: 100,
-    marginBottom: 1,
+
+  topWave: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 135,
+    zIndex: 1,
   },
-  inputBox: {
-    borderWidth: 2,
-    borderColor: "#e74545de",
-    borderRadius: 30,
-    marginVertical: 15,
-    display: "flex",
-    flexDirection: "row",
-    width: 330,
-    paddingHorizontal: 15,
+
+  bottomWave: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 145,
+    zIndex: 1,
+    transform: [{ rotate: "180deg" }],
   },
-  icon: {
-    alignSelf: "center",
-    paddingLeft: 15,
-    paddingRight: 3,
-    // backgroundColor: "#10082ce0",
-  },
-  input: {
-    color: "#ffffffb2",
-    height: 50,
-    width: 280,
-    fontSize: 20,
-    // backgroundColor: "#10082ce0",
-  },
-  signUp: {
-    backgroundColor: "#e74545de",
-    color: "#fff",
-    alignSelf: "center",
-    marginTop: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 130,
-    fontWeight: "bold",
-    fontSize: 15,
-    borderRadius: 20,
-  },
-  logIn: {
+
+  content: {
     flex: 1,
-    display: "flex",
-    flexDirection: "row",
+    justifyContent: "center",
+    paddingHorizontal: 34,
+    zIndex: 10,
+  },
+
+  logo: {
+    width: 190,
+    height: 72,
+    resizeMode: "contain",
     alignSelf: "center",
-    gap: 40,
-    marginTop: 180,
+    marginBottom: 6,
   },
-  white: {
+
+  title: {
+    color: "#C85A3A",
+    fontWeight: "bold",
+    fontSize: 18,
+    textAlign: "center",
+  },
+
+  subtitle: {
+    color: "#C85A3A",
+    fontWeight: "600",
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 4,
+    marginBottom: 30,
+  },
+
+  input: {
+    height: 35,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2DDD9",
+    borderRadius: 7,
+    paddingHorizontal: 12,
+    color: "#333",
+    fontSize: 12,
+    marginBottom: 17,
+  },
+
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 8,
+  },
+
+  termsTextRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    flex: 1,
+  },
+
+  button: {
+    height: 36,
+    backgroundColor: "#C85A3A",
+    borderRadius: 8,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+
+  buttonText: {
+    textAlign: "center",
     color: "#fff",
+    fontWeight: "500",
+    fontSize: 14,
   },
+
+  bottomRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 22,
+  },
+
+  gray: {
+    color: "#8E8E8E",
+    fontSize: 12,
+  },
+
+  linkText: {
+    color: "#C85A3A",
+    fontWeight: "bold",
+    fontSize: 12,
+  },
+
+  resendText: {
+    color: "#C85A3A",
+    fontWeight: "bold",
+    fontSize: 12,
+    textAlign: "center",
+    marginBottom: 18,
+  },
+
   error: {
-    color: "#fff",
-    // padding: 200,
+    color: "#C85A3A",
+    textAlign: "center",
+    marginBottom: 12,
+    fontSize: 12,
   },
-  flexError: {
-    display: "flex",
-    flexDirection: "row",
-    gap: 3,
-    marginLeft: 20,
-    marginRight: 10,
-    marginVertical: 5,
-    marginBottom: 15,
-  },
-  flex: {
-    display: "flex",
-    flexDirection: "row",
-    gap: 5,
+
+  step: {
+  position: "absolute",
+  top: 120,
+  right: 30,
+  backgroundColor: "#F7DCD3",
+  color: "#C85A3A",
+  fontWeight: "700",
+  fontSize: 12,
+  paddingHorizontal: 15,
+  paddingVertical: 7,
+  borderRadius: 18,
+  zIndex: 10,
   },
 });
