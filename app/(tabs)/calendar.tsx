@@ -448,7 +448,6 @@ export default function CalendarScreen() {
 
         {/* Bottom Navigation */}
         <BottomNav active="calendar" onChange={handleTabChange} />
-      </View>
     </SafeAreaView>
   );
 }

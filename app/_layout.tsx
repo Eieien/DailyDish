@@ -45,7 +45,7 @@ export default function Layout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="chat" options={{ headerShown: false }} />
-            <Stack.Screen name="createRecipes" options={{ headerShown: false }} />
+            <Stack.Screen name="addRecipes" options={{ headerShown: false }} />
           </Stack>
         </SafeAreaProvider>
       </Provider>
