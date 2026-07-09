@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "expo-router";
-import { useClerk } from "@clerk/clerk-expo";
+import { useAuth } from "@clerk/clerk-expo";
 
 import Header from "../../components/Header";
 import SearchBar from "../../components/SearchBar";
@@ -16,16 +17,31 @@ import AskAIButton from "../../components/AskAIButton";
 import { dailyProgress, todaysMeals, recipes } from "../../data/mockData";
 import { Recipe } from "../../data/types";
 import { MealEntry } from "../../data/types";
-import { getUsers } from "../lib/user";
+import { getUser } from "../lib/user";
+import { setUser } from "../store/user";
 
 export default function HomeScreen() {
-  const {session} = useClerk();
+  const { userId, isSignedIn, isLoaded, getToken } = useAuth({
+    treatPendingAsSignedOut: false,
+  });
+  const user = useSelector((state:any) => state.user.user);
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [meals, setMeals] = useState<MealEntry[]>(todaysMeals);
   const [activeTab, setActiveTab] = useState<"home" | "calendar" | "grid" | "profile">(
     "home"
   );
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!userId) return;
+      const user = await getUser(userId);
+      console.log("user : ", user);
+      dispatch(setUser(user));
+    };
+    if (userId) loadUser();
+  }, [userId]);
 
   const toggleMeal = (id: string) => {
     setMeals((prev) =>
@@ -37,16 +53,11 @@ export default function HomeScreen() {
     router.push(`/recipe/${recipe.id}`);
   };
 
-  // const [users, setUsers] = useState<any[]>([]);
-  // const fetchUsers = async () => {
-  //   const data = await getUsers(); // Expo Router resolves this internally
-  //   setUsers(data);
-  // };
-  // fetchUsers();
-  // console.log(session);
-
+  
+  console.log("user session: ", user);
 
   return (
+    
     <SafeAreaView className="flex-1 bg-[#FDF3EC]" edges={["top"]}>
       <StatusBar barStyle="dark-content" />
 
@@ -56,7 +67,7 @@ export default function HomeScreen() {
           contentContainerStyle={{ paddingBottom: 24 }}
         >
           <Header
-            name="Tom"
+            name={user ?  user.name: "Loading.."}   //{user.name}
             subtitle="BLABLABLALA"
             avatarUrl="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200"
           />

@@ -1,5 +1,6 @@
 import { user } from "../../db/schema";
 import dbInstance  from "../../db/index"; 
+import { eq } from "drizzle-orm";
 
 export async function GET() {
     const result = await dbInstance.select().from(user);
@@ -7,6 +8,18 @@ export async function GET() {
         headers: { "Content-Type": "application/json" },
     });
 }
+
+// export async function GET({ params }: { params: { id: string } }) {
+//   const result = await dbInstance
+//     .select()
+//     .from(user)
+//     .where(eq(user.id, params.id));
+//     console.log(result);
+
+//   return new Response(JSON.stringify(result[0]), {
+//     headers: { "Content-Type": "application/json" },
+//   });
+// }
 
 export async function POST(req: Request) {
   const body = await req.json();

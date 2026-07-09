@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, ScrollView, StatusBar, Pressable, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useClerk } from "@clerk/clerk-expo";
+import { useAuth } from "@clerk/clerk-expo";
 
 import BottomNav from "../../components/BottomNav";
 import AskAIButton from "../../components/AskAIButton";
@@ -20,7 +20,8 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState<"home" | "calendar" | "grid" | "profile">(
     "home"
   );
-  const {signOut, isSignedIn} = useClerk();
+  const { isLoaded, isSignedIn, sessionId, signOut } = useAuth()
+  const wasSignedIn = useRef(isSignedIn)
 
   const toggleMeal = (id: string) => {
     setMeals((prev) =>
@@ -35,9 +36,21 @@ export default function HomeScreen() {
 //    useEffect(() => {
         
 //     }, [isSignedIn]);
+useEffect(() => {
+   if (!isLoaded) return
+
+    if (wasSignedIn.current && !isSignedIn) {
+      // Session expired or was ended — redirect to sign-in
+      console.log("back to sign in")
+      router.replace('/sign-in')
+    }
+
+    wasSignedIn.current = isSignedIn
+  }, [isLoaded, isSignedIn])
+
     // if(!isSignedIn){
-    //         console.log("back to sign in")
-    //         router.replace('/sign-in');
+    //         
+    //         router.push('/sign-in');
     //     }
   
 
