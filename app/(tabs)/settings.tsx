@@ -81,7 +81,7 @@ useEffect(() => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 24 }}
         >
-          <Pressable onPress={() => {signOut(), console.log("logging out"), router.replace('/sign-in');}}> 
+          <Pressable onPress={() => {signOut(), console.log("logging out"), router.replace('/settings');}}> 
             {/* requiring 2 press = 2 reloads 
             perhaps clerk takes some time to operate  */}
             <Text> Log out</Text>
