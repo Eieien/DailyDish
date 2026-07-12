@@ -6,9 +6,10 @@ import { Recipe } from "../data/types";
 type Props = {
   recipe: Recipe;
   onPress: (recipe: Recipe) => void;
+  onDelete?: (recipe: Recipe) => void;
 };
 
-export default function RecipeCard({ recipe, onPress }: Props) {
+export default function RecipeCard({ recipe, onPress, onDelete }: Props) {
   return (
     <Pressable
       onPress={() => onPress(recipe)}
@@ -24,6 +25,15 @@ export default function RecipeCard({ recipe, onPress }: Props) {
           {recipe.description}
         </Text>
       </View>
+      {onDelete ? (
+        <Pressable
+          onPress={() => onDelete(recipe)}
+          hitSlop={8}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white items-center justify-center border border-[#F0E4DA] active:opacity-70"
+        >
+          <Ionicons name="trash-outline" size={14} color="#C85A3A" />
+        </Pressable>
+      ) : null}
       <View className="absolute bottom-3 right-3 w-7 h-7 rounded-full bg-white items-center justify-center border border-[#F0E4DA]">
         <Ionicons name="arrow-up-outline" size={14} color="#D2601A" />
       </View>

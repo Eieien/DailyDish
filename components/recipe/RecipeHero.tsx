@@ -6,9 +6,10 @@ import { colors } from '@/constants/theme';
 
 interface RecipeHeroProps {
   image: string;
+  onEdit?: () => void;
 }
 
-export const RecipeHero: React.FC<RecipeHeroProps> = ({ image }) => {
+export const RecipeHero: React.FC<RecipeHeroProps> = ({ image, onEdit }) => {
   const goBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -27,6 +28,15 @@ export const RecipeHero: React.FC<RecipeHeroProps> = ({ image }) => {
         className="absolute left-4 top-4 h-9 w-9 items-center justify-center rounded-full bg-surface/90 shadow-sm active:opacity-70">
         <Ionicons name="chevron-back" size={20} color={colors.ink} />
       </Pressable>
+
+      {onEdit ? (
+        <Pressable
+          onPress={onEdit}
+          hitSlop={12}
+          className="absolute right-4 top-4 h-9 w-9 items-center justify-center rounded-full bg-surface/90 shadow-sm active:opacity-70">
+          <Ionicons name="pencil" size={17} color={colors.ink} />
+        </Pressable>
+      ) : null}
     </View>
   );
 };

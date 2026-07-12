@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '@/constants/theme';
@@ -6,18 +6,38 @@ import { colors } from '@/constants/theme';
 interface RecipeActionsProps {
   onAddToMeals?: () => void;
   onSaveRecipe?: () => void;
+  addingToMeals?: boolean;
+  addedToMeals?: boolean;
 }
 
-export const RecipeActions: React.FC<RecipeActionsProps> = ({ onAddToMeals, onSaveRecipe }) => {
+export const RecipeActions: React.FC<RecipeActionsProps> = ({
+  onAddToMeals,
+  onSaveRecipe,
+  addingToMeals = false,
+  addedToMeals = false,
+}) => {
   return (
     <View className="gap-3">
       <Pressable
         onPress={onAddToMeals}
-        className="flex-row items-center justify-center rounded-full bg-primary py-4 shadow-sm active:opacity-90">
-        <Ionicons name="add-circle-outline" size={20} color={colors.surface} />
-        <Text className="ml-2 font-urbanist-bold text-base text-white">
-          Add to Today&apos;s Meals
-        </Text>
+        disabled={addingToMeals || addedToMeals}
+        className={`flex-row items-center justify-center rounded-full py-4 shadow-sm ${
+          addedToMeals ? 'bg-accent' : 'bg-primary active:opacity-90'
+        }`}>
+        {addingToMeals ? (
+          <ActivityIndicator color={colors.surface} />
+        ) : (
+          <>
+            <Ionicons
+              name={addedToMeals ? 'checkmark-circle' : 'add-circle-outline'}
+              size={20}
+              color={colors.surface}
+            />
+            <Text className="ml-2 font-urbanist-bold text-base text-white">
+              {addedToMeals ? "Added to Today's Meals" : "Add to Today's Meals"}
+            </Text>
+          </>
+        )}
       </Pressable>
 
       <Pressable

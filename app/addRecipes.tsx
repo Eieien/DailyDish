@@ -1,360 +1,471 @@
-import React, { useState } from "react";
-import { 
+import React, { useEffect, useState } from "react";
+import {
   View,
   ScrollView,
   StatusBar,
   Pressable,
   Text,
-  Alert,
   Image,
-  StyleSheet,
-  TextInput
- } from "react-native";
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 
-import { Ionicons, Feather as Icons  } from '@expo/vector-icons';
-import { colors } from '@/constants/theme';
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "@/constants/theme";
 import * as ImagePicker from "expo-image-picker";
-import DropDownPicker from 'react-native-dropdown-picker';
-import { styleText } from "node:util";
+import DropDownPicker from "react-native-dropdown-picker";
 
-// import {uploadImage} from './util/storage';
+import { SectionCard } from "@/components/ui/SectionCard";
+import { createRecipe, updateRecipe, getRecipeById } from "./lib/recipes";
+import { uploadImage } from "./lib/upload";
+import { estimateNutrition } from "./lib/estimateNutrition";
+import { Alert } from "@/lib/alert";
 
+const CATEGORY_ITEMS = [
+  { label: "Breakfast", value: "Breakfast" },
+  { label: "Lunch", value: "Lunch" },
+  { label: "Dinner", value: "Dinner" },
+  { label: "Snacks", value: "Snacks" },
+];
 
-export default function HomeScreen() {
+export default function AddRecipeScreen() {
   const router = useRouter();
-  const {userId} = useAuth();
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"home" | "calendar" | "grid" | "profile">(
-    "home"
-  );
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const isEditing = !!editId;
+  const { userId } = useAuth({ treatPendingAsSignedOut: false });
 
+  const [loadingExisting, setLoadingExisting] = useState(isEditing);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [recipe, setRecipe] = useState("");
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState(null);
-  const [items, setItems] = React.useState([
-    {label: 'Breakfast', value: 'Breakfast'},
-    {label: 'Lunch', value: 'Lunch'},
-    {label: 'Dinner', value: 'Dinner'},
-    {label: 'Snacks', value: 'Snacks'}
-  ]);
+  const [value, setValue] = React.useState<string | null>(null);
+  const [items, setItems] = React.useState(CATEGORY_ITEMS);
   const [ingredients, setIngredients] = useState(["", "", ""]);
+  const [steps, setSteps] = useState(["", ""]);
+  const [calories, setCalories] = useState("");
+  const [protein, setProtein] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [fat, setFat] = useState("");
+  const [estimating, setEstimating] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!editId) return;
+    getRecipeById(editId).then((existing) => {
+      if (!existing) {
+        Alert.alert("Recipe not found", "This recipe may have been deleted.");
+        setLoadingExisting(false);
+        return;
+      }
+      setImageUri(existing.image);
+      setRecipe(existing.title);
+      setValue(existing.category);
+      setIngredients(existing.ingredients?.length ? existing.ingredients : ["", "", ""]);
+      setSteps(existing.steps?.length ? existing.steps : ["", ""]);
+      setCalories(String(existing.calories ?? existing.nutritions?.calories ?? ""));
+      setProtein(String(existing.nutritions?.protein ?? ""));
+      setFat(String(existing.nutritions?.fat ?? ""));
+      setCarbs(String(existing.nutritions?.carbs ?? ""));
+      setLoadingExisting(false);
+    });
+  }, [editId]);
 
   const addIngredient = () => {
     setIngredients([...ingredients, ""]);
   };
 
-  // Remove ingredient at index
   const removeIngredient = (index: number) => {
-    const updated = ingredients.filter((_, i) => i !== index);
-    setIngredients(updated);
+    setIngredients(ingredients.filter((_, i) => i !== index));
   };
 
-  // Update ingredient text
   const updateIngredient = (text: string, index: number) => {
     const updated = [...ingredients];
     updated[index] = text;
     setIngredients(updated);
   };
 
+  const addStep = () => {
+    setSteps([...steps, ""]);
+  };
+
+  const removeStep = (index: number) => {
+    setSteps(steps.filter((_, i) => i !== index));
+  };
+
+  const updateStep = (text: string, index: number) => {
+    const updated = [...steps];
+    updated[index] = text;
+    setSteps(updated);
+  };
+
   const goBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     }
   };
 
-
-  const pickRecipeImage = async () => {
-    // No permissions request is necessary for launching the image library.
-    // Manually request permissions for videos on iOS when `allowsEditing` is set to `false`
-    // and `videoExportPreset` is `'Passthrough'` (the default), ideally before launching the picker
-    // so the app users aren't surprised by a system dialog after picking a video.
-    // See "Invoke permissions for videos" sub section for more details.
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const pickFromLibrary = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
       Alert.alert(
         "Permission required",
-        "Permission to access the media library is required.",
+        "Permission to access the media library is required."
       );
       return;
     }
 
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images", "videos"],
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
-      quality: 1,
+      quality: 0.8,
     });
 
     if (result.canceled) return;
-    const image = result.assets[0];
-    // await updateBanner(image.uri);
+    setImageUri(result.assets[0].uri);
   };
 
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
- 
+    if (!permissionResult.granted) {
+      Alert.alert("Permission required", "Permission to access the camera is required.");
+      return;
+    }
 
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+    setImageUri(result.assets[0].uri);
+  };
+
+  const onPickImage = () => {
+    Alert.alert("Add a photo", "Choose a source", [
+      { text: "Take Photo", onPress: takePhoto },
+      { text: "Choose from Library", onPress: pickFromLibrary },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+
+  const onAiEstimate = async () => {
+    if (!recipe.trim()) {
+      Alert.alert("Recipe name required", "Enter a recipe name first so AI has something to estimate from.");
+      return;
+    }
+
+    setEstimating(true);
+    try {
+      const cleanedIngredients = ingredients.map((i) => i.trim()).filter(Boolean);
+      const result = await estimateNutrition(recipe.trim(), cleanedIngredients);
+      setCalories(String(result.calories));
+      setProtein(String(result.protein));
+      setFat(String(result.fat));
+      setCarbs(String(result.carbs));
+    } catch {
+      Alert.alert("Estimate failed", "Couldn't get an AI estimate. Please enter values manually.");
+    } finally {
+      setEstimating(false);
+    }
+  };
+
+  const onSaveRecipe = async () => {
+    if (!userId) return;
+
+    if (!recipe.trim()) {
+      Alert.alert("Recipe name required", "Please enter a name for your recipe.");
+      return;
+    }
+
+    const cleanedIngredients = ingredients.map((i) => i.trim()).filter(Boolean);
+    const cleanedSteps = steps.map((s) => s.trim()).filter(Boolean);
+
+    setSaving(true);
+    try {
+      let uploadedImageUrl: string | null = imageUri;
+      if (imageUri && !imageUri.startsWith("http")) {
+        uploadedImageUrl = await uploadImage(imageUri, "recipes");
+      }
+
+      const nutrition = {
+        calories: parseInt(calories, 10) || 0,
+        protein: parseInt(protein, 10) || 0,
+        fat: parseInt(fat, 10) || 0,
+        carbs: parseInt(carbs, 10) || 0,
+      };
+
+      if (isEditing && editId) {
+        await updateRecipe(editId, {
+          title: recipe.trim(),
+          category: value,
+          image: uploadedImageUrl,
+          calories: nutrition.calories,
+          ingredients: cleanedIngredients,
+          nutritions: nutrition,
+          steps: cleanedSteps,
+        });
+      } else {
+        await createRecipe({
+          userId,
+          title: recipe.trim(),
+          category: value,
+          image: uploadedImageUrl,
+          calories: nutrition.calories,
+          ingredients: cleanedIngredients,
+          nutritions: nutrition,
+          steps: cleanedSteps,
+        });
+      }
+      router.replace(isEditing ? `/recipe/${editId}` : "/(tabs)/recipe");
+    } catch {
+      Alert.alert(
+        isEditing ? "Failed to save changes" : "Failed to save recipe",
+        "Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loadingExisting) {
+    return (
+      <View className="flex-1 items-center justify-center bg-neutral">
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#FDF3EC]" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-neutral" edges={["top"]}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 24 }}
+        contentContainerStyle={{ paddingBottom: 32 }}
       >
-        <View className="flex-1">
-            <View className="flex-row items-center gap-3 px-4 pb-3 pt-2">
-              <Pressable
-                onPress={goBack}
-                hitSlop={12}
-                className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
-                <Ionicons name="chevron-back" size={20} color={colors.ink} />
-              </Pressable>
-              <Text className="font-urbanist-bold text-lg text-ink">Add Recipe</Text>
-            </View>
-            
-            {/* UPload img */}
-            <View style={styles.uploadImg}>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={pickRecipeImage}
-                >
-                  <Image
-                  source={
-                  require("../assets/images/upload.png")
-                  }
-                />
-                </Pressable>
+        <View className="flex-row items-center gap-3 px-4 pb-3 pt-2">
+          <Pressable
+            onPress={goBack}
+            hitSlop={12}
+            className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
+            <Ionicons name="chevron-back" size={20} color={colors.ink} />
+          </Pressable>
+          <Text className="font-urbanist-bold text-lg text-ink">
+            {isEditing ? "Edit Recipe" : "Add Recipe"}
+          </Text>
+        </View>
+
+        <View className="gap-5 px-5 pt-2">
+          <Pressable
+            onPress={onPickImage}
+            className="h-44 items-center justify-center overflow-hidden rounded-3xl border border-dashed border-primary/40 bg-surface">
+            {imageUri ? (
+              <>
+                <Image source={{ uri: imageUri }} className="h-full w-full" resizeMode="cover" />
+                <View className="absolute bottom-3 right-3 flex-row items-center gap-1 rounded-full bg-ink/70 px-3 py-1.5">
+                  <Ionicons name="camera-outline" size={14} color={colors.surface} />
+                  <Text className="font-urbanist-semibold text-xs text-white">Change photo</Text>
+                </View>
+              </>
+            ) : (
+              <View className="items-center gap-2">
+                <View className="h-12 w-12 items-center justify-center rounded-full bg-neutral">
+                  <Ionicons name="camera-outline" size={22} color={colors.primary} />
+                </View>
+                <Text className="font-urbanist-semibold text-sm text-primary">Add a photo</Text>
+                <Text className="font-urbanist text-xs text-muted">Camera or photo library</Text>
               </View>
-            
-            {/* upper input */}
-            <View style={styles.body}>
-              <View style={styles.inputField}>
-                <Text style={styles.inputTitle}>Recipe Name</Text>
+            )}
+          </Pressable>
+
+          <SectionCard title="Recipe Info" className="z-30">
+            <View className="gap-4">
+              <View>
+                <Text className="mb-2 font-urbanist-semibold text-sm text-ink">Recipe Name</Text>
                 <TextInput
-                  placeholder="..."
-                  placeholderTextColor="#9E9E9E"
+                  placeholder="e.g. Pinoy Breakfast"
+                  placeholderTextColor={colors.muted}
                   onChangeText={setRecipe}
                   value={recipe}
-                  style={styles.input}
+                  className="rounded-2xl border border-line bg-surface px-4 py-3 font-urbanist text-sm text-ink"
                 />
               </View>
-              <View style={styles.inputField}>
-                <Text style={styles.inputTitle}>Category</Text>
+
+              <View>
+                <Text className="mb-2 font-urbanist-semibold text-sm text-ink">Category</Text>
                 <DropDownPicker
-                  placeholder="Select a Category"
-                  placeholderStyle={{color: "#9E9E9E"}}
+                  placeholder="Select a category"
+                  placeholderStyle={{ color: colors.muted, fontFamily: "Urbanist_400Regular" }}
                   open={open}
                   value={value}
                   items={items}
                   setOpen={setOpen}
                   setValue={setValue}
                   setItems={setItems}
-                  style={styles.dropdown}
-                  dropDownContainerStyle={styles.dropdownContainer}
+                  zIndex={3000}
+                  zIndexInverse={1000}
+                  style={{
+                    borderColor: colors.border,
+                    borderRadius: 16,
+                    backgroundColor: colors.surface,
+                    minHeight: 46,
+                  }}
+                  textStyle={{ fontFamily: "Urbanist_400Regular", fontSize: 14, color: colors.ink }}
+                  dropDownContainerStyle={{
+                    borderColor: colors.border,
+                    borderRadius: 16,
+                    backgroundColor: colors.surface,
+                  }}
                 />
               </View>
             </View>
+          </SectionCard>
 
-            {/* ingredients */}
-            <View style={styles.ingredients}>
-              <Text style={[styles.inputTitle, {marginBottom: 10}]}>Ingredients</Text>
+          <SectionCard title="Ingredients" className="z-10">
+            <View className="gap-3">
               {ingredients.map((ingredient, index) => (
-                  <View key={index} style={styles.inputRow}>
-                    <TextInput
-                      style={styles.inputRows}
-                      value={ingredient}
-                      onChangeText={(text) => updateIngredient(text, index)}
-                    />
-                    <Pressable onPress={() => removeIngredient(index)}>
-                      <Ionicons name="close" size={20} color="red" />
-                    </Pressable>
-                  </View>
-                ))}
-
-                <Pressable style={styles.addButton} onPress={addIngredient}>
-                  <Text style={styles.addText}>+ Add Ingredient</Text>
-                </Pressable>
-            </View>
-
-            {/* nutrition */}
-            <View style={styles.inputField}>
-                <View style={styles.nutritionTop}>
-                  <Text style={[styles.inputTitle, {marginRight: 120, padding: 7}]}> Nutrition</Text>
-                  <Pressable style={styles.estimate}>
-                    <Image
-                      style={{
-                        height: 20,
-                        width: 30,
-                        resizeMode: "contain" ,
-                        tintColor: "white",
-                        padding: 0,
-                        margin: 0,
-                      }}
-                      source={require("../assets/images/chatbot.png")}
-                    />
-                    <Text style={styles.estimateBtn}>AI Estimate</Text>
+                <View key={index} className="flex-row items-center gap-2">
+                  <TextInput
+                    placeholder={`Ingredient ${index + 1}`}
+                    placeholderTextColor={colors.muted}
+                    value={ingredient}
+                    onChangeText={(text) => updateIngredient(text, index)}
+                    className="flex-1 rounded-2xl border border-line bg-surface px-4 py-3 font-urbanist text-sm text-ink"
+                  />
+                  <Pressable
+                    onPress={() => removeIngredient(index)}
+                    hitSlop={8}
+                    className="h-9 w-9 items-center justify-center rounded-full bg-neutral active:opacity-70">
+                    <Ionicons name="close" size={16} color={colors.secondary} />
                   </Pressable>
                 </View>
-                <View style={styles.nutritionRow}>
-                  <View style={styles.nutritionBox}>
-                      <Text style={styles.valuesTitle}>Calories</Text>
-                      <Text style={styles.values}>280 kcal</Text>
-                  </View>
-                  <View style={styles.nutritionBox}>
-                      <Text style={styles.valuesTitle}>Protien</Text>
-                      <Text style={styles.values}>28 g</Text>
-                  </View>
-                  <View style={styles.nutritionBox}>
-                      <Text style={styles.valuesTitle}>Carbs</Text>
-                      <Text style={styles.values}>28 g</Text>
-                  </View>
-                  <View style={styles.nutritionBox}>
-                      <Text style={styles.valuesTitle}>Fat</Text>
-                      <Text style={styles.values}>28 g</Text>
-                  </View>
-                </View>
+              ))}
+
+              <Pressable
+                onPress={addIngredient}
+                className="items-center self-start rounded-full border border-primary px-4 py-2 active:opacity-70">
+                <Text className="font-urbanist-semibold text-sm text-primary">
+                  + Add Ingredient
+                </Text>
+              </Pressable>
             </View>
+          </SectionCard>
+
+          <SectionCard title="Steps" className="z-10">
+            <View className="gap-3">
+              {steps.map((step, index) => (
+                <View key={index} className="flex-row items-start gap-2">
+                  <Text className="mt-3 w-5 text-center font-urbanist-bold text-sm text-primary">
+                    {index + 1}.
+                  </Text>
+                  <TextInput
+                    placeholder={`Step ${index + 1}`}
+                    placeholderTextColor={colors.muted}
+                    value={step}
+                    onChangeText={(text) => updateStep(text, index)}
+                    multiline
+                    className="flex-1 rounded-2xl border border-line bg-surface px-4 py-3 font-urbanist text-sm text-ink"
+                  />
+                  <Pressable
+                    onPress={() => removeStep(index)}
+                    hitSlop={8}
+                    className="mt-1 h-9 w-9 items-center justify-center rounded-full bg-neutral active:opacity-70">
+                    <Ionicons name="close" size={16} color={colors.secondary} />
+                  </Pressable>
+                </View>
+              ))}
+
+              <Pressable
+                onPress={addStep}
+                className="items-center self-start rounded-full border border-primary px-4 py-2 active:opacity-70">
+                <Text className="font-urbanist-semibold text-sm text-primary">+ Add Step</Text>
+              </Pressable>
+            </View>
+          </SectionCard>
+
+          <SectionCard className="z-10">
+            <View className="mb-4 flex-row items-center justify-between">
+              <Text className="font-urbanist-bold text-lg text-ink">Nutrition</Text>
+              <Pressable
+                onPress={onAiEstimate}
+                disabled={estimating}
+                className={`flex-row items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 ${
+                  estimating ? "opacity-70" : "active:opacity-90"
+                }`}>
+                {estimating ? (
+                  <ActivityIndicator size="small" color={colors.surface} />
+                ) : (
+                  <Ionicons name="sparkles-outline" size={14} color={colors.surface} />
+                )}
+                <Text className="font-urbanist-semibold text-xs text-white">
+                  {estimating ? "Estimating…" : "AI Estimate"}
+                </Text>
+              </Pressable>
+            </View>
+            <Text className="mb-3 font-urbanist text-xs text-muted">
+              Enter values manually, or tap AI Estimate to have Gemini fill them in for you.
+            </Text>
+
+            <View className="flex-row gap-3">
+              <NutritionInput label="Calories" unit="kcal" value={calories} onChangeText={setCalories} />
+              <NutritionInput label="Protein" unit="g" value={protein} onChangeText={setProtein} />
+              <NutritionInput label="Carbs" unit="g" value={carbs} onChangeText={setCarbs} />
+              <NutritionInput label="Fat" unit="g" value={fat} onChangeText={setFat} />
+            </View>
+          </SectionCard>
+
+          <Pressable
+            onPress={onSaveRecipe}
+            disabled={saving}
+            className={`items-center justify-center rounded-full bg-primary py-4 shadow-sm ${
+              saving ? "opacity-70" : "active:opacity-90"
+            }`}>
+            {saving ? (
+              <ActivityIndicator color={colors.surface} />
+            ) : (
+              <Text className="font-urbanist-bold text-base text-white">
+                {isEditing ? "Save Changes" : "Save Recipe"}
+              </Text>
+            )}
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-
-const styles = StyleSheet.create({
-  uploadImg:{
-    alignSelf: "center",
-    marginTop: 10
-  },
-  body:{
-    marginTop: 15,
-  },
-  inputField:{
-    marginHorizontal: 30,
-    marginTop: 10,
-  },
-  inputTitle:{
-    fontWeight: "bold",
-  },
-  inputBox:{
-    alignSelf: "center",
-  },
-  input: {
-    height: 40,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2DDD9",
-    borderRadius: 7,
-    paddingHorizontal: 12,
-    color: "#333",
-    fontSize: 15,
-    marginTop: 8,
-    marginBottom: 5,
-  },
-  dropdown: {
-    height: 30,
-    width: 333,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2DDD9",
-    borderRadius: 7,
-    paddingHorizontal: 12,
-    color: "#333",
-    fontSize: 15,
-    marginTop: 8,
-    marginBottom: 5,
-  },
-  dropdownContainer: {
-    height: "auto",
-    width: 333,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2DDD9",
-    borderRadius: 7,
-    paddingHorizontal: 12,
-    color: "#333",
-    fontSize: 15,
-    marginTop: 8,
-    marginBottom: 5,
-  },
-  ingredients:{
-    marginHorizontal: 30,
-    marginTop: 30,
-  },
-   inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  inputRows: {
-    height: 40,
-    width: 295,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E2DDD9",
-    borderRadius: 7,
-    paddingHorizontal: 12,
-    color: "#333",
-    fontSize: 15,
-    marginRight: 10,
-  },
-  addButton: {
-    borderWidth: 1,
-    borderColor: "#C85A3A",
-    borderRadius: 25,
-    padding: 8,
-    alignItems: "center",
-    width: 170,
-  },
-  addText: {
-    color: "#C85A3A",
-    fontWeight: "600",
-  },
-  nutritionTop:{
-    marginTop: 10,
-    flexDirection: "row",
-  },
-  estimate:{
-    backgroundColor: "#C85A3A",
-    flexDirection: "row",
-    padding: 5,
-    borderRadius: 20,
-  },
-  estimateBtn: {
-    color: "white", 
-    padding: 2, 
-    paddingRight: 8,
-    fontSize: 13,
-  },
-  nutritionRow:{
-    flexDirection: "row",
-    gap: 10,
-  },
-  nutritionBox:{
-    borderWidth: 1,
-    borderColor: "#9E9E9E",
-    borderRadius: 15,
-    padding: 12,
-    width: 75,
-    marginTop: 15,
-  },
-  valuesTitle:{
-    fontSize: 12,
-    marginBottom: 15,
-    textAlign: "center",
-    fontWeight: "bold"
-  },
-  values:{
-    fontSize: 12,
-    textAlign: "center",
-    fontWeight: "bold"
-  }
-})
+function NutritionInput({
+  label,
+  unit,
+  value,
+  onChangeText,
+}: {
+  label: string;
+  unit: string;
+  value: string;
+  onChangeText: (text: string) => void;
+}) {
+  return (
+    <View className="flex-1 items-center rounded-2xl bg-neutral py-2">
+      <Text className="mb-1 font-urbanist text-[10px] text-muted">{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType="number-pad"
+        placeholder="0"
+        placeholderTextColor={colors.muted}
+        className="w-full text-center font-urbanist-bold text-sm text-ink"
+      />
+      <Text className="font-urbanist text-[10px] text-muted">{unit}</Text>
+    </View>
+  );
+}

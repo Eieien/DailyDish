@@ -6,10 +6,12 @@ import { MealEntry } from "../data/types";
 type Props = {
   meal: MealEntry;
   onToggle: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
   isLast?: boolean;
 };
 
-export default function MealRow({ meal, onToggle, isLast }: Props) {
+export default function MealRow({ meal, onToggle, onEdit, onDelete, isLast }: Props) {
   return (
     <View
       className={`flex-row items-center py-3 ${
@@ -25,6 +27,24 @@ export default function MealRow({ meal, onToggle, isLast }: Props) {
         <Text className="text-xs text-[#9C9088]">{meal.recipeTitle}</Text>
       </View>
       <Text className="text-sm text-[#2B2320] mr-3">{meal.calories} kcal</Text>
+      {onEdit ? (
+        <Pressable
+          onPress={() => onEdit(meal.id)}
+          hitSlop={8}
+          className="w-7 h-7 rounded-full items-center justify-center mr-2 bg-[#FAF7F4]"
+        >
+          <Ionicons name="pencil" size={13} color="#9C9088" />
+        </Pressable>
+      ) : null}
+      {onDelete ? (
+        <Pressable
+          onPress={() => onDelete(meal.id)}
+          hitSlop={8}
+          className="w-7 h-7 rounded-full items-center justify-center mr-2 bg-[#FAF7F4]"
+        >
+          <Ionicons name="trash-outline" size={13} color="#C85A3A" />
+        </Pressable>
+      ) : null}
       <Pressable
         onPress={() => onToggle(meal.id)}
         className={`w-6 h-6 rounded-full items-center justify-center ${
