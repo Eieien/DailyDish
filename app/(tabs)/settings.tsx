@@ -1,102 +1,65 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, ScrollView, StatusBar, Pressable, Text } from "react-native";
+import React from "react";
+import { View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useAuth } from "@clerk/clerk-expo";
 
-import BottomNav from "../../components/BottomNav";
-import AskAIButton from "../../components/AskAIButton";
+import Header from "../../components/Header";
+import SettingsSection from "../../components/settings/SettingsSection";
+import SettingsRow from "../../components/settings/SettingsRow";
 
-import { dailyProgress, todaysMeals, recipes } from "../../data/mockData";
-import { Recipe } from "../../data/types";
-import { MealEntry } from "../../data/types";
-import { postUsers, getUsers } from "../lib/user";
-
-
-export default function HomeScreen() {
-  const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [meals, setMeals] = useState<MealEntry[]>(todaysMeals);
-  const [activeTab, setActiveTab] = useState<"home" | "calendar" | "grid" | "profile">(
-    "home"
-  );
-  const { isLoaded, isSignedIn, sessionId, signOut } = useAuth()
-  const wasSignedIn = useRef(isSignedIn)
-
-  const toggleMeal = (id: string) => {
-    setMeals((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, completed: !m.completed } : m))
-    );
-  };
-
-  const openRecipe = (recipe: Recipe) => {
-    router.push(`/recipe/${recipe.id}`);
-  };
-
-//    useEffect(() => {
-        
-//     }, [isSignedIn]);
-useEffect(() => {
-   if (!isLoaded) return
-
-    if (wasSignedIn.current && !isSignedIn) {
-      // Session expired or was ended — redirect to sign-in
-      console.log("back to sign in")
-      router.replace('/sign-in')
-    }
-
-    wasSignedIn.current = isSignedIn
-  }, [isLoaded, isSignedIn])
-
-    // if(!isSignedIn){
-    //         
-    //         router.push('/sign-in');
-    //     }
-  
-
-  const [users, setUsers] = useState<any[]>([]);
-  const fetchUsers = async () => {
-    const data = await getUsers(); // Expo Router resolves this internally
-    setUsers(data);
-  };
-  
-
-  const test = async () =>{
-    await postUsers({
-      id: "user_3GDnKs4dxDTXUIctu0XOimtEPyC",
-      name: "rin",
-    });
-    console.log("push user");
-    fetchUsers();
-    console.log(users);
-  }
-
-
+export default function SettingsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#FDF3EC]" edges={["top"]}>
       <StatusBar barStyle="dark-content" />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
+        <Header
+          name="Tom Riddle"
+          email="@iwhamutnatbenamed@gmail.com"
+          avatarUrl="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200"
+        />
 
-      <View className="flex-1">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 24 }}
-        >
-          <Pressable onPress={() => {signOut(), console.log("logging out"), router.replace('/settings');}}> 
-            {/* requiring 2 press = 2 reloads 
-            perhaps clerk takes some time to operate  */}
-            <Text> Log out</Text>
-          </Pressable>
+        <SettingsSection title="Account">
+          <SettingsRow label="Edit Profile" onPress={() => {}} />
+          <SettingsRow label="Change Password" onPress={() => {}} />
+          <SettingsRow
+            label="Units"
+            value="Metric (kg, g)"
+            isLast
+            onPress={() => {}}
+          />
+        </SettingsSection>
 
-          {/* <Pressable onPress={() => {test(), console.log("add user"), router.replace('/settings');}}> 
-            <Text> test user</Text>
-          </Pressable> */}
+        <SettingsSection title="Preferences">
+          <SettingsRow
+            label="Daily Goal"
+            value="2,000 kcal"
+            onPress={() => {}}
+          />
+          <SettingsRow label="Reminders" value="On" isLast onPress={() => {}} />
+        </SettingsSection>
 
-        </ScrollView>
+        <SettingsSection title="About">
+          <SettingsRow label="Help & Support" onPress={() => {}} />
+          <SettingsRow label="Privacy Policy" onPress={() => {}} />
+          <SettingsRow
+            label="Terms of Service"
+            isLast
+            onPress={() => {}}
+          />
+        </SettingsSection>
 
-        <AskAIButton onPress={() => router.push("/chat")} />
-
-        <BottomNav active={activeTab} onChange={setActiveTab} />
-      </View>
+        <View className="mx-5 mt-6 bg-white rounded-2xl overflow-hidden">
+          <SettingsRow
+            label="Log Out"
+            danger
+            showChevron={false}
+            isLast
+            onPress={() => {}}
+          />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
