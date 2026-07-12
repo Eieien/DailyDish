@@ -129,6 +129,8 @@ export default function SignUpScreen() {
       </View>
 
       <View style={styles.content}>
+        <View nativeID="clerk-captcha" />
+
         <Text style={styles.step}>Step 1 of 2</Text>
 
         <Image

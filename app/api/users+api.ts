@@ -1,32 +1,23 @@
 import { user } from "../../db/schema";
-import dbInstance  from "../../db/index"; 
-import { eq } from "drizzle-orm";
+import dbInstance from "../../db/index";
 
 export async function GET() {
-    const result = await dbInstance.select().from(user);
-    return new Response(JSON.stringify(result), {
-        headers: { "Content-Type": "application/json" },
-    });
+  const result = await dbInstance.select().from(user);
+  return new Response(JSON.stringify(result), {
+    headers: { "Content-Type": "application/json" },
+  });
 }
-
-// export async function GET({ params }: { params: { id: string } }) {
-//   const result = await dbInstance
-//     .select()
-//     .from(user)
-//     .where(eq(user.id, params.id));
-//     console.log(result);
-
-//   return new Response(JSON.stringify(result[0]), {
-//     headers: { "Content-Type": "application/json" },
-//   });
-// }
 
 export async function POST(req: Request) {
   const body = await req.json();
 
-  await dbInstance.insert(user).values(body);
+  const [row] = await dbInstance
+    .insert(user)
+    .values(body)
+    .onConflictDoNothing({ target: user.id })
+    .returning();
 
-  return new Response(JSON.stringify({ success: true }), {
+  return new Response(JSON.stringify({ success: true, user: row ?? null }), {
     headers: { "Content-Type": "application/json" },
   });
 }

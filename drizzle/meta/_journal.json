@@ -22,6 +22,27 @@
       "when": 1783513425319,
       "tag": "0002_silly_bloodscream",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783880295858,
+      "tag": "0003_elite_lockjaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783883067594,
+      "tag": "0004_loving_spacker_dave",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783885476125,
+      "tag": "0005_chief_blackheart",
+      "breakpoints": true
     }
   ]
 }

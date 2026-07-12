@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 type Props = {
@@ -9,6 +9,8 @@ type Props = {
   showChevron?: boolean;
   isLast?: boolean;
   onPress?: () => void;
+  switchValue?: boolean;
+  onSwitchChange?: (value: boolean) => void;
 };
 
 export default function SettingsRow({
@@ -18,10 +20,14 @@ export default function SettingsRow({
   showChevron = true,
   isLast,
   onPress,
+  switchValue,
+  onSwitchChange,
 }: Props) {
+  const hasSwitch = typeof switchValue === "boolean" && onSwitchChange;
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={hasSwitch ? undefined : onPress}
       className={`flex-row items-center justify-between px-4 py-4 ${
         isLast ? "" : "border-b border-[#F0E4DA]"
       }`}
@@ -34,11 +40,22 @@ export default function SettingsRow({
         {label}
       </Text>
       <View className="flex-row items-center">
-        {value ? (
-          <Text className="text-xs text-[#9C9088] mr-2">{value}</Text>
-        ) : null}
-        {showChevron && (
-          <Ionicons name="chevron-forward" size={16} color="#C9BCB1" />
+        {hasSwitch ? (
+          <Switch
+            value={switchValue}
+            onValueChange={onSwitchChange}
+            trackColor={{ false: "#E3D6CA", true: "#D2601A" }}
+            thumbColor="#FFFFFF"
+          />
+        ) : (
+          <>
+            {value ? (
+              <Text className="text-xs text-[#9C9088] mr-2">{value}</Text>
+            ) : null}
+            {showChevron && (
+              <Ionicons name="chevron-forward" size={16} color="#C9BCB1" />
+            )}
+          </>
         )}
       </View>
     </Pressable>

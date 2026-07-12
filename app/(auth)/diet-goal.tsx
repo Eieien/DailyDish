@@ -5,9 +5,13 @@ import {
     Pressable,
     StyleSheet,
     Image,
+    ActivityIndicator,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
+import { useAuth } from "@clerk/clerk-expo";
+
+import { updateUser } from "../lib/user";
 
 const goals = [
     {
@@ -38,13 +42,27 @@ const goals = [
 
 export default function DietGoalScreen() {
     const router = useRouter();
+    const { userId } = useAuth();
 
     const [selectedGoal, setSelectedGoal] = useState("lose_weight");
     const [calories, setCalories] = useState(1800);
+    const [saving, setSaving] = useState(false);
 
     const onCompleteSetup = async () => {
+        if (!userId || saving) return;
 
-        router.replace("/(tabs)");
+        setSaving(true);
+        try {
+            await updateUser(userId, {
+                dietGoal: selectedGoal,
+                dailyCalorieTarget: calories,
+            });
+            router.replace("/(tabs)");
+        } catch {
+            router.replace("/(tabs)");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -103,8 +121,16 @@ export default function DietGoalScreen() {
             <Text style={styles.scaleText}>2,400</Text>
         </View>
 
-        <Pressable style={styles.button} onPress={onCompleteSetup}>
-            <Text style={styles.buttonText}>Complete Setup</Text>
+        <Pressable
+            style={[styles.button, saving && { opacity: 0.7 }]}
+            onPress={onCompleteSetup}
+            disabled={saving}
+        >
+            {saving ? (
+                <ActivityIndicator color="#fff" />
+            ) : (
+                <Text style={styles.buttonText}>Complete Setup</Text>
+            )}
         </Pressable>
         </View>
     );
