@@ -1,4 +1,4 @@
-import type { Recipe } from '@/app/types/recipe';
+import type { Recipe } from '@/app/_types/recipe';
 
 /**
  * Temporary in-memory recipe catalog.

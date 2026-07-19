@@ -1,4 +1,4 @@
-import type { ChatMessage } from '../types/chat';
+import type { ChatMessage } from '../_types/chat';
 
 export async function sendChatMessage(
   messages: ChatMessage[],

@@ -18,10 +18,10 @@ import AddMealModal from "../../components/meal/AddMealModal";
 import ScanFoodModal from "../../components/meal/ScanFoodModal";
 import { ImageOrPlaceholder } from "../../components/ui/ImageOrPlaceholder";
 
-import { localIsoDate } from "../lib/meals";
-import { setMealCompletedLocal } from "../powersync/writes";
-import { useUserProfile } from "../hooks/useUserProfile";
-import { useMealsForDate } from "../hooks/useMealsForDate";
+import { localIsoDate } from "../_lib/meals";
+import { setMealCompletedLocal } from "../_powersync/writes";
+import { useUserProfile } from "../_hooks/useUserProfile";
+import { useMealsForDate } from "../_hooks/useMealsForDate";
 import { dailyProgress as goalDefaults } from "../../data/mockData";
 
 function isSameDay(a: Date, b: Date) {

@@ -12,8 +12,8 @@ import EditFieldModal from "../../components/settings/EditFieldModal";
 import ChangePasswordModal from "../../components/settings/ChangePasswordModal";
 import InfoModal from "../../components/settings/InfoModal";
 
-import { useUserProfile } from "../hooks/useUserProfile";
-import { updateUserLocal } from "../powersync/writes";
+import { useUserProfile } from "../_hooks/useUserProfile";
+import { updateUserLocal } from "../_powersync/writes";
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
 

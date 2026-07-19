@@ -5,7 +5,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 
-import { getMealHistory, type DayHistory } from "./lib/meals";
+import { getMealHistory, type DayHistory } from "./_lib/meals";
 import { colors } from "@/constants/theme";
 
 function formatDayLabel(isoDate: string) {

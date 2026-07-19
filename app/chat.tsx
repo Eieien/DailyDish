@@ -13,26 +13,26 @@ import {
   ChatInputBar,
   TypingIndicator,
 } from '../components/chat';
-import { sendChatMessage } from './lib/ai';
+import { sendChatMessage } from './_lib/ai';
 import {
   appendMessage,
   createSession,
   getSession,
   listSessions,
   updateSessionTitle,
-} from './lib/sessions';
-import { useUserProfile } from './hooks/useUserProfile';
-import { useIsOnline } from './hooks/useIsOnline';
-import { fetchLocalUserContext } from './lib/aiContext';
+} from './_lib/sessions';
+import { useUserProfile } from './_hooks/useUserProfile';
+import { useIsOnline } from './_hooks/useIsOnline';
+import { fetchLocalUserContext } from './_lib/aiContext';
 import {
   buildRecapText,
   getYesterdaysTotals,
   hasShownRecapToday,
   isPastRecapCutoff,
   markRecapShown,
-} from './lib/dailyRecap';
+} from './_lib/dailyRecap';
 import { colors } from '@/constants/theme';
-import type { ChatMessage } from './types/chat';
+import type { ChatMessage } from './_types/chat';
 
 const GREETING_TEXT = "Hi! I'm your DailyDish AI assistant. How can I help you today?";
 const IS_NATIVE = Platform.OS !== 'web';

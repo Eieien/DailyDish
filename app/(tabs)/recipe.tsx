@@ -10,9 +10,9 @@ import RecipesSection from "../../components/RecipesSection";
 import BottomNav from "../../components/BottomNav";
 
 import { Recipe } from "../../data/types";
-import { toRecipeCardData } from "../lib/recipes";
-import { deleteRecipeLocal } from "../powersync/writes";
-import { useRecipes } from "../hooks/useRecipes";
+import { toRecipeCardData } from "../_lib/recipes";
+import { deleteRecipeLocal } from "../_powersync/writes";
+import { useRecipes } from "../_hooks/useRecipes";
 import { Alert } from "@/lib/alert";
 
 const CATEGORY_FILTERS = ["All", "Breakfast", "Lunch", "Dinner", "Snacks"] as const;

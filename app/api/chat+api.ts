@@ -2,10 +2,10 @@ import { GoogleGenAI } from '@google/genai';
 import { and, desc, eq, gte, isNull, sql } from 'drizzle-orm';
 
 import { GEMINI_MODEL, SYSTEM_INSTRUCTION, GENERATION_CONFIG } from '@/constants/ai';
-import type { ChatMessage } from '@/app/types/chat';
-import type { MealRow } from '@/app/lib/meals';
-import type { RecipeRow } from '@/app/lib/recipes';
-import { buildUserContext, HISTORY_WINDOW_DAYS } from '@/app/lib/aiContext';
+import type { ChatMessage } from '@/app/_types/chat';
+import type { MealRow } from '@/app/_lib/meals';
+import type { RecipeRow } from '@/app/_lib/recipes';
+import { buildUserContext, HISTORY_WINDOW_DAYS } from '@/app/_lib/aiContext';
 import dbInstance from '../../db/index';
 import { user, recipes, meal } from '../../db/schema';
 

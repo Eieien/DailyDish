@@ -5,9 +5,9 @@ import * as ImagePicker from "expo-image-picker";
 
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
-import { uploadImage } from "@/app/lib/upload";
-import type { MealRow } from "@/app/lib/meals";
-import { updateMealLocal } from "@/app/powersync/writes";
+import { uploadImage } from "@/app/_lib/upload";
+import type { MealRow } from "@/app/_lib/meals";
+import { updateMealLocal } from "@/app/_powersync/writes";
 
 const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snacks"] as const;
 

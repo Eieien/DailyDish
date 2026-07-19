@@ -4,9 +4,9 @@ import type { UserProfile } from './user';
 import type { MealRow } from './meals';
 import { localIsoDate } from './meals';
 import type { RecipeRow } from './recipes';
-import { mapUserRow } from '../hooks/useUserProfile';
-import { mapMealRow, MEAL_SELECT } from '../hooks/useMealsForDate';
-import { mapRecipeRow } from '../hooks/useRecipes';
+import { mapUserRow } from '../_hooks/useUserProfile';
+import { mapMealRow, MEAL_SELECT } from '../_hooks/useMealsForDate';
+import { mapRecipeRow } from '../_hooks/useRecipes';
 
 function mealCalories(meal: MealRow): number {
   return meal.calories ?? meal.nutritions?.calories ?? 0;

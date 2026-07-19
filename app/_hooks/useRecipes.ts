@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useQuery } from '@powersync/react';
 
-import type { RecipeRow } from '../lib/recipes';
-import { getRecipeById, getRecipes } from '../lib/recipes';
-import { parseJsonColumn } from '../powersync/utils';
-import { subscribeToDataRefresh } from '../lib/dataRefresh';
+import type { RecipeRow } from '../_lib/recipes';
+import { getRecipeById, getRecipes } from '../_lib/recipes';
+import { parseJsonColumn } from '../_powersync/utils';
+import { subscribeToDataRefresh } from '../_lib/dataRefresh';
 
 export function mapRecipeRow(row: any): RecipeRow {
   return {

@@ -4,10 +4,10 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
-import type { RecipeRow } from "@/app/lib/recipes";
-import { localIsoDate } from "@/app/lib/meals";
-import { useRecipes } from "@/app/hooks/useRecipes";
-import { insertMealLocal } from "@/app/powersync/writes";
+import type { RecipeRow } from "@/app/_lib/recipes";
+import { localIsoDate } from "@/app/_lib/meals";
+import { useRecipes } from "@/app/_hooks/useRecipes";
+import { insertMealLocal } from "@/app/_powersync/writes";
 import { ImageOrPlaceholder } from "@/components/ui/ImageOrPlaceholder";
 import type { MealSlot } from "@/data/types";
 

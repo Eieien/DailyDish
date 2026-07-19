@@ -17,14 +17,14 @@ import { GoalPickerModal, goalLabel } from "../../components/goal/GoalPickerModa
 
 import { dailyProgress as goalDefaults } from "../../data/mockData";
 import { Recipe, DailyProgress } from "../../data/types";
-import { getUser, postUsers } from "../lib/user";
-import { toMealEntry } from "../lib/meals";
-import { buildRecapText, getYesterdaysTotals } from "../lib/dailyRecap";
-import { toRecipeCardData } from "../lib/recipes";
-import { setMealCompletedLocal, deleteMealLocal, updateUserLocal } from "../powersync/writes";
-import { useUserProfile } from "../hooks/useUserProfile";
-import { useMealsForDate } from "../hooks/useMealsForDate";
-import { useRecipes } from "../hooks/useRecipes";
+import { getUser, postUsers } from "../_lib/user";
+import { toMealEntry } from "../_lib/meals";
+import { buildRecapText, getYesterdaysTotals } from "../_lib/dailyRecap";
+import { toRecipeCardData } from "../_lib/recipes";
+import { setMealCompletedLocal, deleteMealLocal, updateUserLocal } from "../_powersync/writes";
+import { useUserProfile } from "../_hooks/useUserProfile";
+import { useMealsForDate } from "../_hooks/useMealsForDate";
+import { useRecipes } from "../_hooks/useRecipes";
 import { Alert } from "@/lib/alert";
 
 export default function HomeScreen() {

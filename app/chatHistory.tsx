@@ -5,7 +5,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 
-import { listSessions, type SessionRow } from "./lib/sessions";
+import { listSessions, type SessionRow } from "./_lib/sessions";
 import { colors } from "@/constants/theme";
 
 function formatSessionDate(iso: string) {

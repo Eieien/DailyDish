@@ -2,13 +2,13 @@ import { Platform } from 'react-native';
 import * as Crypto from 'expo-crypto';
 
 import { powersync } from './PowerSyncProvider';
-import type { CreateMealInput, UpdateMealInput } from '../lib/meals';
-import { createMeal, deleteMeal, localIsoDate, updateMeal } from '../lib/meals';
-import type { CreateRecipeInput, UpdateRecipeInput } from '../lib/recipes';
-import { createRecipe, deleteRecipe, updateRecipe } from '../lib/recipes';
-import type { UserProfile } from '../lib/user';
-import { updateUser } from '../lib/user';
-import { notifyDataChanged } from '../lib/dataRefresh';
+import type { CreateMealInput, UpdateMealInput } from '../_lib/meals';
+import { createMeal, deleteMeal, localIsoDate, updateMeal } from '../_lib/meals';
+import type { CreateRecipeInput, UpdateRecipeInput } from '../_lib/recipes';
+import { createRecipe, deleteRecipe, updateRecipe } from '../_lib/recipes';
+import type { UserProfile } from '../_lib/user';
+import { updateUser } from '../_lib/user';
+import { notifyDataChanged } from '../_lib/dataRefresh';
 
 // PowerSync's web sync has never reliably connected (see PowerSyncProvider),
 // so on web every write here falls back to the same REST calls these screens

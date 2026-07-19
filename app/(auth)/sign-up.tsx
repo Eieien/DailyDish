@@ -11,7 +11,7 @@ import { useSignUp } from "@clerk/clerk-expo";
 import { useState } from "react";
 import { useRouter } from "expo-router";
 import Checkbox from "expo-checkbox";
-import { postUsers } from "../lib/user";
+import { postUsers } from "../_lib/user";
 import Svg, { Path } from "react-native-svg";
 
 const loginFailCounter = 6;

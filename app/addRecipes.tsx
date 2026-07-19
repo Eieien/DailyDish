@@ -19,10 +19,10 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 
 import { SectionCard } from "@/components/ui/SectionCard";
-import { useRecipeById } from "./hooks/useRecipes";
-import { insertRecipeLocal, updateRecipeLocal } from "./powersync/writes";
-import { uploadImage } from "./lib/upload";
-import { estimateNutrition } from "./lib/estimateNutrition";
+import { useRecipeById } from "./_hooks/useRecipes";
+import { insertRecipeLocal, updateRecipeLocal } from "./_powersync/writes";
+import { uploadImage } from "./_lib/upload";
+import { estimateNutrition } from "./_lib/estimateNutrition";
 import { Alert } from "@/lib/alert";
 
 const CATEGORY_ITEMS = [

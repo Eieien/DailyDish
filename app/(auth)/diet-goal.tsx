@@ -11,7 +11,7 @@ import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 
-import { updateUser } from "../lib/user";
+import { updateUser } from "../_lib/user";
 
 const goals = [
     {

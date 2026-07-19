@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useQuery } from '@powersync/react';
 
-import type { MealRow } from '../lib/meals';
-import { getMealsForDate, localIsoDate } from '../lib/meals';
-import { parseJsonColumn, toBool } from '../powersync/utils';
-import { subscribeToDataRefresh } from '../lib/dataRefresh';
+import type { MealRow } from '../_lib/meals';
+import { getMealsForDate, localIsoDate } from '../_lib/meals';
+import { parseJsonColumn, toBool } from '../_powersync/utils';
+import { subscribeToDataRefresh } from '../_lib/dataRefresh';
 
 export function mapMealRow(row: any): MealRow {
   return {

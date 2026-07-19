@@ -5,9 +5,9 @@ import {
   UpdateType,
 } from '@powersync/common';
 
-import { createRecipe, updateRecipe, deleteRecipe } from '../lib/recipes';
-import { createMeal, updateMeal, deleteMeal } from '../lib/meals';
-import { postUsers, updateUser } from '../lib/user';
+import { createRecipe, updateRecipe, deleteRecipe } from '../_lib/recipes';
+import { createMeal, updateMeal, deleteMeal } from '../_lib/meals';
+import { postUsers, updateUser } from '../_lib/user';
 import { parseJsonColumn, toBool } from './utils';
 
 type GetToken = (options: { template: string }) => Promise<string | null>;

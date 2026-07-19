@@ -5,7 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { Provider } from 'react-redux';
-import { store } from './store/store';
+import { store } from './_store/store';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import {
   useFonts,
@@ -19,7 +19,7 @@ import {
 import { colors } from '@/constants/theme';
 import { AlertHost } from '@/components/ui/AlertHost';
 import { SyncStatusBanner } from '@/components/SyncStatusBanner';
-import { PowerSyncProvider } from './powersync/PowerSyncProvider';
+import { PowerSyncProvider } from './_powersync/PowerSyncProvider';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 

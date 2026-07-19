@@ -3,10 +3,10 @@ import { Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useQuery } from '@powersync/react';
 
-import type { UserProfile } from '../lib/user';
-import { getUser } from '../lib/user';
-import { toBool } from '../powersync/utils';
-import { subscribeToDataRefresh } from '../lib/dataRefresh';
+import type { UserProfile } from '../_lib/user';
+import { getUser } from '../_lib/user';
+import { toBool } from '../_powersync/utils';
+import { subscribeToDataRefresh } from '../_lib/dataRefresh';
 
 export function mapUserRow(row: any): UserProfile {
   return {

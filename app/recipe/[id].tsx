@@ -11,9 +11,9 @@ import {
   StepsSection,
   RecipeActions,
 } from '../../components/recipe';
-import { useRecipeById } from '../hooks/useRecipes';
-import { localIsoDate } from '../lib/meals';
-import { insertMealLocal } from '../powersync/writes';
+import { useRecipeById } from '../_hooks/useRecipes';
+import { localIsoDate } from '../_lib/meals';
+import { insertMealLocal } from '../_powersync/writes';
 import { colors } from '@/constants/theme';
 import { Alert } from '@/lib/alert';
 

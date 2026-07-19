@@ -5,11 +5,11 @@ import * as ImagePicker from "expo-image-picker";
 
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
-import { uploadImage } from "@/app/lib/upload";
-import { estimateNutritionFromImage, type FoodScanEstimate } from "@/app/lib/estimateNutrition";
-import { localIsoDate } from "@/app/lib/meals";
+import { uploadImage } from "@/app/_lib/upload";
+import { estimateNutritionFromImage, type FoodScanEstimate } from "@/app/_lib/estimateNutrition";
+import { localIsoDate } from "@/app/_lib/meals";
 import type { MealSlot } from "@/data/types";
-import { insertMealLocal, insertRecipeLocal } from "@/app/powersync/writes";
+import { insertMealLocal, insertRecipeLocal } from "@/app/_powersync/writes";
 import { ImageOrPlaceholder } from "@/components/ui/ImageOrPlaceholder";
 
 const CATEGORIES: MealSlot[] = ["Breakfast", "Lunch", "Dinner", "Snacks"];
