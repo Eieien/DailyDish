@@ -5,14 +5,14 @@ import { colors } from '@/constants/theme';
 
 interface RecipeActionsProps {
   onAddToMeals?: () => void;
-  onSaveRecipe?: () => void;
+  onEditRecipe?: () => void;
   addingToMeals?: boolean;
   addedToMeals?: boolean;
 }
 
 export const RecipeActions: React.FC<RecipeActionsProps> = ({
   onAddToMeals,
-  onSaveRecipe,
+  onEditRecipe,
   addingToMeals = false,
   addedToMeals = false,
 }) => {
@@ -41,12 +41,10 @@ export const RecipeActions: React.FC<RecipeActionsProps> = ({
       </Pressable>
 
       <Pressable
-        onPress={onSaveRecipe}
+        onPress={onEditRecipe}
         className="flex-row items-center justify-center rounded-full border border-primary bg-surface py-4 active:opacity-70">
-        <Ionicons name="bookmark-outline" size={18} color={colors.primary} />
-        <Text className="ml-2 font-urbanist-semibold text-base text-primary">
-          Save to My Recipes
-        </Text>
+        <Ionicons name="pencil-outline" size={18} color={colors.primary} />
+        <Text className="ml-2 font-urbanist-semibold text-base text-primary">Edit Recipe</Text>
       </Pressable>
     </View>
   );

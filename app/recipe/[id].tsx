@@ -108,6 +108,7 @@ export default function RecipeDetails() {
 
           <RecipeActions
             onAddToMeals={onAddToMeals}
+            onEditRecipe={() => router.push(`/addRecipes?id=${recipe.id}`)}
             addingToMeals={addingToMeals}
             addedToMeals={addedToMeals}
           />
