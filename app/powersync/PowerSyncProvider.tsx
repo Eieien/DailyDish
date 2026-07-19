@@ -46,8 +46,12 @@ export function PowerSyncProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    console.log('[PowerSync] signed in as', userId, '— calling connect()...');
     connectorRef.current = new Connector(getToken);
-    powersync.connect(connectorRef.current);
+    powersync.connect(connectorRef.current).then(
+      () => console.log('[PowerSync] connect() call returned (this does not mean fully synced yet)'),
+      (error) => console.log('[PowerSync] connect() rejected:', error)
+    );
 
     return () => {
       powersync.disconnect();

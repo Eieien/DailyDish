@@ -16,10 +16,29 @@ export class Connector implements PowerSyncBackendConnector {
   constructor(private getToken: GetToken) {}
 
   async fetchCredentials(): Promise<PowerSyncCredentials | null> {
-    const token = await this.getToken({ template: 'powersync' });
-    if (!token) return null;
+    let token: string | null = null;
+    try {
+      token = await this.getToken({ template: 'powersync' });
+    } catch (error) {
+      console.log('[PowerSync] getToken({ template: "powersync" }) threw:', error);
+      throw error;
+    }
+
+    if (!token) {
+      console.log(
+        '[PowerSync] getToken returned null/empty for template "powersync" — ' +
+          'connect() will silently keep retrying without this. Check that the ' +
+          '"powersync" JWT Template actually exists in the Clerk Dashboard.'
+      );
+      return null;
+    }
+
+    console.log(
+      `[PowerSync] got token (length ${token.length}), first 12 chars: ${token.slice(0, 12)}...`
+    );
 
     const endpoint = process.env.EXPO_PUBLIC_POWERSYNC_URL;
+    console.log('[PowerSync] endpoint:', endpoint);
     if (!endpoint) {
       throw new Error('EXPO_PUBLIC_POWERSYNC_URL is not set');
     }
