@@ -1,6 +1,8 @@
-import { useRef, useState } from 'react';
-import { View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@clerk/clerk-expo';
+import { useLocalSearchParams } from 'expo-router';
 
 import {
   ChatHeader,
@@ -10,22 +12,37 @@ import {
   TypingIndicator,
 } from '../components/chat';
 import { sendChatMessage } from './lib/ai';
+import { appendMessage, createSession, getSession, updateSessionTitle } from './lib/sessions';
+import { useUserProfile } from './hooks/useUserProfile';
+import {
+  buildRecapText,
+  getYesterdaysTotals,
+  hasShownRecapToday,
+  isPastRecapCutoff,
+  markRecapShown,
+} from './lib/dailyRecap';
+import { colors } from '@/constants/theme';
 import type { ChatMessage } from './types/chat';
 
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    id: 'm1',
-    role: 'assistant',
-    text: "Hi! I'm your DailyDish AI assistant. How can I help you today?",
-  },
-];
+const GREETING_TEXT = "Hi! I'm your DailyDish AI assistant. How can I help you today?";
+
+function truncateTitle(text: string): string {
+  const trimmed = text.trim();
+  return trimmed.length > 40 ? `${trimmed.slice(0, 40)}…` : trimmed;
+}
 
 export default function Chat() {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
-  const idRef = useRef(INITIAL_MESSAGES.length);
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const idRef = useRef(0);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [titled, setTitled] = useState(false);
+
+  const { userId } = useAuth({ treatPendingAsSignedOut: false });
+  const userProfile = useUserProfile(userId);
+  const { sessionId: resumeSessionId } = useLocalSearchParams<{ sessionId?: string }>();
 
   const nextId = () => {
     idRef.current += 1;
@@ -36,18 +53,80 @@ export default function Chat() {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
   };
 
+  // Resume a past session (from History), or start a fresh one — optionally
+  // prefaced with a computed (non-LLM) recap of yesterday's totals.
+  useEffect(() => {
+    let cancelled = false;
+
+    const setup = async () => {
+      if (resumeSessionId) {
+        const result = await getSession(resumeSessionId);
+        if (cancelled) return;
+        if (result) {
+          setSessionId(result.session.id);
+          setTitled(result.session.title !== 'New chat');
+          setMessages(
+            result.messages.map((m) => ({
+              id: m.id,
+              role: m.role === 'user' ? 'user' : 'assistant',
+              text: m.message,
+            }))
+          );
+          return;
+        }
+      }
+
+      if (!userId) return;
+
+      const session = await createSession(userId);
+      if (cancelled) return;
+      setSessionId(session.id);
+
+      const initial: ChatMessage[] = [];
+
+      if (isPastRecapCutoff() && !(await hasShownRecapToday(userId))) {
+        const yesterday = await getYesterdaysTotals(userId);
+        const recapText = buildRecapText(yesterday, userProfile?.dailyCalorieTarget ?? null);
+        initial.push({ id: nextId(), role: 'assistant', text: recapText });
+        appendMessage(session.id, 'assistant', recapText).catch(() => {});
+        markRecapShown(userId).catch(() => {});
+      }
+
+      initial.push({ id: nextId(), role: 'assistant', text: GREETING_TEXT });
+      if (!cancelled) setMessages(initial);
+    };
+
+    setup().catch((error) => {
+      console.log('Failed to set up chat session:', error);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // Only re-run when switching which session we're loading, not on every
+    // profile refresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, resumeSessionId]);
+
   const handleSend = async (text: string) => {
-    if (isSending) return;
+    if (isSending || !sessionId) return;
 
     const userMessage: ChatMessage = { id: nextId(), role: 'user', text };
     const history = [...messages, userMessage];
     setMessages(history);
     setIsSending(true);
     scrollToEnd();
+    appendMessage(sessionId, 'user', text).catch(() => {});
+
+    if (!titled) {
+      setTitled(true);
+      updateSessionTitle(sessionId, truncateTitle(text)).catch(() => {});
+    }
 
     try {
-      const reply = await sendChatMessage(history);
+      const reply = await sendChatMessage(history, userId);
       setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', text: reply }]);
+      appendMessage(sessionId, 'assistant', reply).catch(() => {});
     } catch (error) {
       const text = error instanceof Error ? error.message : 'Something went wrong.';
       setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', text }]);
@@ -71,6 +150,11 @@ export default function Chat() {
           contentContainerStyle={{ paddingVertical: 12 }}
           showsVerticalScrollIndicator={false}
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: false })}>
+          {sessionId === null && messages.length === 0 ? (
+            <View className="items-center py-8">
+              <ActivityIndicator color={colors.primary} />
+            </View>
+          ) : null}
           {messages.map((message) => (
             <ChatBubble key={message.id} message={message} />
           ))}
@@ -79,7 +163,7 @@ export default function Chat() {
 
         <View className="gap-2 px-2 pt-2" style={{ paddingBottom: insets.bottom + 8 }}>
           <ChatQuickActions onAction={handleSend} />
-          <ChatInputBar onSend={handleSend} disabled={isSending} />
+          <ChatInputBar onSend={handleSend} disabled={isSending || !sessionId} />
         </View>
       </KeyboardAvoidingView>
     </View>

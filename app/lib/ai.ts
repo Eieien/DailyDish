@@ -1,10 +1,13 @@
 import type { ChatMessage } from '../types/chat';
 
-export async function sendChatMessage(messages: ChatMessage[]): Promise<string> {
+export async function sendChatMessage(
+  messages: ChatMessage[],
+  userId?: string | null
+): Promise<string> {
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, userId }),
   });
 
   const data = await response.json().catch(() => null);

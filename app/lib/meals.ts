@@ -16,9 +16,6 @@ export type MealRow = {
   updatedAt: string;
 };
 
-export const PLACEHOLDER_MEAL_IMAGE =
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200";
-
 export function localIsoDate(date: Date = new Date()): string {
   return date.toLocaleDateString("en-CA");
 }
@@ -35,6 +32,7 @@ export async function getMealsForDate(userId: string, date?: string): Promise<Me
 }
 
 export type CreateMealInput = {
+  id?: string;
   userId: string;
   title: string;
   category?: MealSlot | string | null;
@@ -129,7 +127,7 @@ export function toMealEntry(row: MealRow): MealEntry {
     slot,
     recipeTitle: row.title,
     calories: row.calories ?? row.nutritions?.calories ?? 0,
-    imageUrl: row.imageUrl ?? PLACEHOLDER_MEAL_IMAGE,
+    imageUrl: row.imageUrl,
     completed: row.completed,
   };
 }

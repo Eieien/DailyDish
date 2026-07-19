@@ -18,6 +18,8 @@ import {
 
 import { colors } from '@/constants/theme';
 import { AlertHost } from '@/components/ui/AlertHost';
+import { SyncStatusBanner } from '@/components/SyncStatusBanner';
+import { PowerSyncProvider } from './powersync/PowerSyncProvider';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -71,21 +73,25 @@ export default function Layout() {
 
   return (
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      <Provider store={store}>
-        <SafeAreaProvider>
-          <AuthGate>
-            <Stack>
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
-              <Stack.Screen name="chat" options={{ headerShown: false }} />
-              <Stack.Screen name="addRecipes" options={{ headerShown: false }} />
-              <Stack.Screen name="history" options={{ headerShown: false }} />
-            </Stack>
-          </AuthGate>
-          <AlertHost />
-        </SafeAreaProvider>
-      </Provider>
+      <PowerSyncProvider>
+        <Provider store={store}>
+          <SafeAreaProvider>
+            <SyncStatusBanner />
+            <AuthGate>
+              <Stack>
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="recipe/[id]" options={{ headerShown: false }} />
+                <Stack.Screen name="chat" options={{ headerShown: false }} />
+                <Stack.Screen name="chatHistory" options={{ headerShown: false }} />
+                <Stack.Screen name="addRecipes" options={{ headerShown: false }} />
+                <Stack.Screen name="history" options={{ headerShown: false }} />
+              </Stack>
+            </AuthGate>
+            <AlertHost />
+          </SafeAreaProvider>
+        </Provider>
+      </PowerSyncProvider>
     </ClerkProvider>
   );
 }

@@ -1,86 +1,61 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch, useSelector } from "react-redux";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 
 import Header from "../../components/Header";
 import DailyRecapCard from "../../components/DailyRecapCard";
+import DailyGoalCard from "../../components/DailyGoalCard";
 import CaloriesSummary from "../../components/CaloriesSummary";
 import TodaysMeals from "../../components/TodaysMeals";
 import RecipesSection from "../../components/RecipesSection";
 import BottomNav from "../../components/BottomNav";
-import AskAIButton from "../../components/AskAIButton";
 import AddMealModal from "../../components/meal/AddMealModal";
+import { GoalPickerModal, goalLabel } from "../../components/goal/GoalPickerModal";
 
 import { dailyProgress as goalDefaults } from "../../data/mockData";
 import { Recipe, DailyProgress } from "../../data/types";
 import { getUser, postUsers } from "../lib/user";
-import { setUser } from "../store/user";
-import { getMealsForDate, setMealCompleted, deleteMeal, toMealEntry, type MealRow } from "../lib/meals";
-import { getRecipes, toRecipeCardData } from "../lib/recipes";
-import { DEFAULT_AVATAR } from "@/constants/theme";
+import { toMealEntry } from "../lib/meals";
+import { toRecipeCardData } from "../lib/recipes";
+import { setMealCompletedLocal, deleteMealLocal, updateUserLocal } from "../powersync/writes";
+import { useUserProfile } from "../hooks/useUserProfile";
+import { useMealsForDate } from "../hooks/useMealsForDate";
+import { useRecipes } from "../hooks/useRecipes";
 import { Alert } from "@/lib/alert";
 
 export default function HomeScreen() {
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
   const { user: clerkUser } = useUser();
-  const userProfile = useSelector((state: any) => state.user.user);
   const router = useRouter();
-  const [mealRows, setMealRows] = useState<MealRow[]>([]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [addMealModalVisible, setAddMealModalVisible] = useState(false);
-  const dispatch = useDispatch();
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
+  const [savingGoal, setSavingGoal] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      const loadUser = async () => {
-        if (!userId) return;
-        try {
-          let profile = await getUser(userId);
-          if (!profile) {
-            const fallbackName = clerkUser?.fullName || clerkUser?.firstName || "there";
-            profile = await postUsers({ id: userId, name: fallbackName });
-          }
-          dispatch(setUser(profile));
-        } catch (error) {
-          console.log("Failed to load user profile:", error);
-        }
-      };
-      loadUser();
-    }, [userId, clerkUser, dispatch])
-  );
+  const userProfile = useUserProfile(userId);
+  const mealRows = useMealsForDate(userId);
+  const recipeRows = useRecipes(userId);
+  const recipes = useMemo(() => recipeRows.map(toRecipeCardData), [recipeRows]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const loadMeals = async () => {
-        if (!userId) return;
-        try {
-          const rows = await getMealsForDate(userId);
-          setMealRows(rows);
-        } catch (error) {
-          console.log("Failed to load meals:", error);
+  // One-time bootstrap: ensures a "user" row exists server-side so PowerSync's
+  // sync rules (which key off it) have something to replicate down. Runs once
+  // per sign-in, independent of the reactive profile read above.
+  useEffect(() => {
+    const ensureUser = async () => {
+      if (!userId) return;
+      try {
+        const profile = await getUser(userId);
+        if (!profile) {
+          const fallbackName = clerkUser?.fullName || clerkUser?.firstName || "there";
+          await postUsers({ id: userId, name: fallbackName });
         }
-      };
-      loadMeals();
-    }, [userId])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      const loadRecipes = async () => {
-        if (!userId) return;
-        try {
-          const rows = await getRecipes(userId);
-          setRecipes(rows.map(toRecipeCardData));
-        } catch (error) {
-          console.log("Failed to load recipes:", error);
-        }
-      };
-      loadRecipes();
-    }, [userId])
-  );
+      } catch (error) {
+        console.log("Failed to ensure user profile:", error);
+      }
+    };
+    ensureUser();
+  }, [userId, clerkUser]);
 
   const meals = useMemo(() => mealRows.map(toMealEntry), [mealRows]);
 
@@ -107,19 +82,10 @@ export default function HomeScreen() {
     async (id: string) => {
       const target = mealRows.find((m) => m.id === id);
       if (!target) return;
-      const nextCompleted = !target.completed;
-
-      setMealRows((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, completed: nextCompleted } : m))
-      );
-
-      try {
-        await setMealCompleted(id, nextCompleted);
-      } catch {
-        setMealRows((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, completed: !nextCompleted } : m))
-        );
-      }
+      // Writes land in local SQLite immediately, so the watched query above
+      // reflects this instantly (offline included) — no manual optimistic
+      // state or rollback needed.
+      await setMealCompletedLocal(id, !target.completed);
     },
     [mealRows]
   );
@@ -133,22 +99,26 @@ export default function HomeScreen() {
       {
         text: "Remove",
         style: "destructive",
-        onPress: async () => {
-          const previous = mealRows;
-          setMealRows((prev) => prev.filter((m) => m.id !== id));
-          try {
-            await deleteMeal(id);
-          } catch {
-            setMealRows(previous);
-            Alert.alert("Failed to remove meal", "Please try again.");
-          }
-        },
+        onPress: () => deleteMealLocal(id),
       },
     ]);
   }, [mealRows]);
 
   const openRecipe = (recipe: Recipe) => {
     router.push(`/recipe/${recipe.id}`);
+  };
+
+  const onSaveGoal = async (goalId: string, calories: number) => {
+    if (!userId) return;
+    setSavingGoal(true);
+    try {
+      await updateUserLocal(userId, { dietGoal: goalId, dailyCalorieTarget: calories });
+      setGoalModalVisible(false);
+    } catch {
+      Alert.alert("Failed to save goal", "Please try again.");
+    } finally {
+      setSavingGoal(false);
+    }
   };
 
   return (
@@ -163,14 +133,18 @@ export default function HomeScreen() {
           <Header
             name={userProfile ? userProfile.name : "Loading.."}
             subtitle="BLABLABLALA"
-            avatarUrl={userProfile?.avatarUrl ?? DEFAULT_AVATAR}
             onPressAvatar={() => router.push("/(tabs)/settings")}
-            showCameraBadge={false}
           />
 
           <DailyRecapCard
             date="July 2, 2026"
             message="Great job! You're 750 kcal under your daily goal. Keep it up! 👍"
+          />
+
+          <DailyGoalCard
+            goalLabel={goalLabel(userProfile?.dietGoal ?? null)}
+            dailyCalorieTarget={userProfile?.dailyCalorieTarget ?? null}
+            onPress={() => setGoalModalVisible(true)}
           />
 
           <CaloriesSummary progress={progress} />
@@ -190,8 +164,6 @@ export default function HomeScreen() {
           />
         </ScrollView>
 
-        <AskAIButton onPress={() => router.push("/chat")} />
-
         <BottomNav />
       </View>
 
@@ -199,7 +171,16 @@ export default function HomeScreen() {
         visible={addMealModalVisible}
         userId={userId}
         onClose={() => setAddMealModalVisible(false)}
-        onAdded={(created) => setMealRows((prev) => [...prev, created])}
+        onAdded={() => setAddMealModalVisible(false)}
+      />
+
+      <GoalPickerModal
+        visible={goalModalVisible}
+        initialGoalId={userProfile?.dietGoal ?? null}
+        initialCalories={userProfile?.dailyCalorieTarget ?? null}
+        saving={savingGoal}
+        onClose={() => setGoalModalVisible(false)}
+        onSave={onSaveGoal}
       />
     </SafeAreaView>
   );

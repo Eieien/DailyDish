@@ -6,7 +6,8 @@ import * as ImagePicker from "expo-image-picker";
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
 import { uploadImage } from "@/app/lib/upload";
-import { updateMeal, type MealRow } from "@/app/lib/meals";
+import type { MealRow } from "@/app/lib/meals";
+import { updateMealLocal } from "@/app/powersync/writes";
 
 const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snacks"] as const;
 
@@ -14,7 +15,7 @@ type Props = {
   visible: boolean;
   meal: MealRow | null;
   onClose: () => void;
-  onSaved: (updated: MealRow) => void;
+  onSaved: () => void;
 };
 
 function MealEditModalContent({ meal, onClose, onSaved }: Omit<Props, "visible">) {
@@ -79,7 +80,7 @@ function MealEditModalContent({ meal, onClose, onSaved }: Omit<Props, "visible">
 
     setSaving(true);
     try {
-      const updated = await updateMeal(meal!.id, {
+      await updateMealLocal(meal!.id, {
         title: title.trim(),
         category,
         imageUrl,
@@ -91,7 +92,7 @@ function MealEditModalContent({ meal, onClose, onSaved }: Omit<Props, "visible">
           carbs: parseInt(carbs, 10) || 0,
         },
       });
-      onSaved(updated);
+      onSaved();
       onClose();
     } catch {
       Alert.alert("Failed to save meal", "Please try again.");

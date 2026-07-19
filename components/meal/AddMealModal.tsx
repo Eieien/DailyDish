@@ -1,17 +1,20 @@
-import { useEffect, useState } from "react";
-import { Modal, View, Text, Pressable, Image, ScrollView, ActivityIndicator } from "react-native";
+import { useState } from "react";
+import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
-import { getRecipes, type RecipeRow } from "@/app/lib/recipes";
-import { createMeal, localIsoDate, PLACEHOLDER_MEAL_IMAGE, type MealRow } from "@/app/lib/meals";
+import type { RecipeRow } from "@/app/lib/recipes";
+import { localIsoDate } from "@/app/lib/meals";
+import { useRecipes } from "@/app/hooks/useRecipes";
+import { insertMealLocal } from "@/app/powersync/writes";
+import { ImageOrPlaceholder } from "@/components/ui/ImageOrPlaceholder";
 
 type Props = {
   visible: boolean;
   userId: string | null | undefined;
   onClose: () => void;
-  onAdded: (meal: MealRow) => void;
+  onAdded: () => void;
 };
 
 function AddMealModalContent({
@@ -19,24 +22,15 @@ function AddMealModalContent({
   onClose,
   onAdded,
 }: Omit<Props, "visible">) {
-  const [recipes, setRecipes] = useState<RecipeRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const recipes = useRecipes(userId);
   const [addingId, setAddingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!userId) return;
-    getRecipes(userId)
-      .then(setRecipes)
-      .catch(() => setRecipes([]))
-      .finally(() => setLoading(false));
-  }, [userId]);
 
   const onPressRecipe = async (recipe: RecipeRow) => {
     if (!userId || addingId) return;
 
     setAddingId(recipe.id);
     try {
-      const created = await createMeal({
+      await insertMealLocal({
         userId,
         recipeId: recipe.id,
         title: recipe.title,
@@ -48,7 +42,7 @@ function AddMealModalContent({
         nutritions: recipe.nutritions,
         ingredients: recipe.ingredients,
       });
-      onAdded(created);
+      onAdded();
       onClose();
     } catch {
       Alert.alert("Couldn't add meal", "Please try again.");
@@ -61,11 +55,7 @@ function AddMealModalContent({
     <View className="w-full max-h-[80%] rounded-3xl bg-white p-5">
       <Text className="text-base font-bold text-[#2B2320] mb-4">Add from My Recipes</Text>
 
-      {loading ? (
-        <View className="items-center py-8">
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      ) : recipes.length === 0 ? (
+      {recipes.length === 0 ? (
         <View className="items-center py-8">
           <Ionicons name="restaurant-outline" size={24} color={colors.muted} />
           <Text className="mt-3 text-center text-sm text-[#9C9088]">
@@ -83,10 +73,7 @@ function AddMealModalContent({
                 index === recipes.length - 1 ? "" : "border-b border-[#F0E4DA]"
               }`}
             >
-              <Image
-                source={{ uri: recipe.image ?? PLACEHOLDER_MEAL_IMAGE }}
-                className="h-12 w-12 rounded-xl bg-[#FAF7F4]"
-              />
+              <ImageOrPlaceholder uri={recipe.image} className="h-12 w-12 rounded-xl bg-[#FAF7F4]" />
               <View className="ml-3 flex-1">
                 <Text className="font-semibold text-[#2B2320]" numberOfLines={1}>
                   {recipe.title}

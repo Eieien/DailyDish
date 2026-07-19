@@ -1,11 +1,12 @@
-import { View, Image, Pressable } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 import { colors } from '@/constants/theme';
+import { ImageOrPlaceholder } from '@/components/ui/ImageOrPlaceholder';
 
 interface RecipeHeroProps {
-  image: string;
+  image: string | null;
   onEdit?: () => void;
 }
 
@@ -20,7 +21,7 @@ export const RecipeHero: React.FC<RecipeHeroProps> = ({ image, onEdit }) => {
 
   return (
     <View className="h-72 w-full overflow-hidden rounded-b-[32px]">
-      <Image source={{ uri: image }} className="h-full w-full" resizeMode="cover" />
+      <ImageOrPlaceholder uri={image} className="h-full w-full" iconSize={40} />
 
       <Pressable
         onPress={goBack}

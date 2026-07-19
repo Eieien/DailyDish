@@ -1,33 +1,25 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
   StatusBar,
-  Image,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { useDispatch, useSelector } from "react-redux";
 import Svg, { Circle } from "react-native-svg";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
-import AskAIButton from "../../components/AskAIButton";
 import BottomNav from "../../components/BottomNav";
 import MealEditModal from "../../components/meal/MealEditModal";
+import { ImageOrPlaceholder } from "../../components/ui/ImageOrPlaceholder";
 
-import {
-  getMealsForDate,
-  setMealCompleted,
-  localIsoDate,
-  PLACEHOLDER_MEAL_IMAGE,
-  type MealRow,
-} from "../lib/meals";
-import { getUser } from "../lib/user";
-import { setUser } from "../store/user";
+import { localIsoDate } from "../lib/meals";
+import { setMealCompletedLocal } from "../powersync/writes";
+import { useUserProfile } from "../hooks/useUserProfile";
+import { useMealsForDate } from "../hooks/useMealsForDate";
 import { dailyProgress as goalDefaults } from "../../data/mockData";
 
 function isSameDay(a: Date, b: Date) {
@@ -56,14 +48,11 @@ function parseIsoDate(iso?: string): Date | null {
 
 export default function ProgressScreen() {
   const router = useRouter();
-  const dispatch = useDispatch();
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
-  const userProfile = useSelector((state: any) => state.user.user);
+  const userProfile = useUserProfile(userId);
   const { date: dateParam } = useLocalSearchParams<{ date?: string }>();
 
   const [selectedDate, setSelectedDate] = useState(() => parseIsoDate(dateParam) ?? new Date());
-  const [mealRows, setMealRows] = useState<MealRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
 
   // Sync selectedDate when the ?date= param changes (e.g. navigating in from
@@ -76,34 +65,7 @@ export default function ProgressScreen() {
     if (parsed) setSelectedDate(parsed);
   }
 
-  useFocusEffect(
-    useCallback(() => {
-      const loadProfile = async () => {
-        if (!userId || userProfile) return;
-        const profile = await getUser(userId);
-        if (profile) dispatch(setUser(profile));
-      };
-      loadProfile();
-    }, [userId, userProfile, dispatch])
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      const loadMeals = async () => {
-        if (!userId) return;
-        setLoading(true);
-        try {
-          const rows = await getMealsForDate(userId, localIsoDate(selectedDate));
-          setMealRows(rows);
-        } catch (error) {
-          console.log("Failed to load meals for date:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadMeals();
-    }, [userId, selectedDate])
-  );
+  const mealRows = useMealsForDate(userId, localIsoDate(selectedDate));
 
   const loggedMeals = mealRows.filter((m) => m.completed);
   const pendingMeals = mealRows.filter((m) => !m.completed);
@@ -149,19 +111,7 @@ export default function ProgressScreen() {
   const toggleMeal = async (id: string) => {
     const target = mealRows.find((m) => m.id === id);
     if (!target) return;
-    const nextCompleted = !target.completed;
-
-    setMealRows((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, completed: nextCompleted } : m))
-    );
-
-    try {
-      await setMealCompleted(id, nextCompleted);
-    } catch {
-      setMealRows((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, completed: !nextCompleted } : m))
-      );
-    }
+    await setMealCompletedLocal(id, !target.completed);
   };
 
   const r = 70;
@@ -345,11 +295,7 @@ export default function ProgressScreen() {
               {isToday ? "Today's Meals" : "Logged Meals"}
             </Text>
 
-            {loading ? (
-              <View className="items-center py-8">
-                <ActivityIndicator color="#C85A3A" />
-              </View>
-            ) : loggedMeals.length === 0 ? (
+            {loggedMeals.length === 0 ? (
               <View className="bg-white rounded-3xl p-6 border border-[#EFE7E1] items-center justify-center mb-4 shadow-sm">
                 <Ionicons name="restaurant-outline" size={24} color="#9C9088" style={{ marginBottom: 8 }} />
                 <Text className="text-xs text-[#9C9088] font-medium text-center">
@@ -363,8 +309,8 @@ export default function ProgressScreen() {
                   className="flex-row items-center bg-white rounded-3xl p-4 mb-3 border border-[#EFE7E1] shadow-sm"
                 >
                   <Pressable onPress={() => toggleMeal(meal.id)} className="flex-row items-center flex-1">
-                    <Image
-                      source={{ uri: meal.imageUrl ?? PLACEHOLDER_MEAL_IMAGE }}
+                    <ImageOrPlaceholder
+                      uri={meal.imageUrl}
                       className="w-14 h-14 rounded-2xl bg-[#FAF7F4]"
                     />
                     <View className="flex-1 ml-4">
@@ -403,7 +349,7 @@ export default function ProgressScreen() {
           </View>
 
           {/* Pending Meals Section */}
-          {!loading && pendingMeals.length > 0 && (
+          {pendingMeals.length > 0 && (
             <View className="px-5 mt-4">
               <Text className="text-lg font-extrabold text-[#2B2320] mb-3">Not Yet Logged</Text>
 
@@ -414,8 +360,8 @@ export default function ProgressScreen() {
                   style={{ opacity: 0.8 }}
                 >
                   <Pressable onPress={() => toggleMeal(meal.id)} className="flex-row items-center flex-1">
-                    <Image
-                      source={{ uri: meal.imageUrl ?? PLACEHOLDER_MEAL_IMAGE }}
+                    <ImageOrPlaceholder
+                      uri={meal.imageUrl}
                       className="w-14 h-14 rounded-2xl bg-[#FAF7F4]"
                     />
                     <View className="flex-1 ml-4">
@@ -451,8 +397,6 @@ export default function ProgressScreen() {
           )}
         </ScrollView>
 
-        <AskAIButton onPress={() => router.push("/chat")} />
-
         <BottomNav />
       </View>
 
@@ -460,9 +404,7 @@ export default function ProgressScreen() {
         visible={editingMealId !== null}
         meal={mealRows.find((m) => m.id === editingMealId) ?? null}
         onClose={() => setEditingMealId(null)}
-        onSaved={(updated) =>
-          setMealRows((prev) => prev.map((m) => (m.id === updated.id ? updated : m)))
-        }
+        onSaved={() => setEditingMealId(null)}
       />
     </SafeAreaView>
   );

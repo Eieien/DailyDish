@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, View, Text, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,31 +11,28 @@ import {
   StepsSection,
   RecipeActions,
 } from '../../components/recipe';
-import { getRecipeById, type RecipeRow } from '../lib/recipes';
-import { createMeal, localIsoDate } from '../lib/meals';
+import { useRecipeById } from '../hooks/useRecipes';
+import { localIsoDate } from '../lib/meals';
+import { insertMealLocal } from '../powersync/writes';
 import { colors } from '@/constants/theme';
 import { Alert } from '@/lib/alert';
 
 /**
  * Recipe details screen.
  *
- * Reads the `id` route param, fetches the matching recipe from the API, and
- * renders the hero, nutrition facts, ingredients, steps, and action buttons.
- * Composed entirely from components in `components/recipe`.
+ * Reads the `id` route param, watches the matching recipe from local
+ * PowerSync-synced storage, and renders the hero, nutrition facts,
+ * ingredients, steps, and action buttons. Composed entirely from components
+ * in `components/recipe`.
  */
 export default function RecipeDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
-  const [recipe, setRecipe] = useState<RecipeRow | null | undefined>(undefined);
+  const { recipe, isLoading } = useRecipeById(id);
   const [addingToMeals, setAddingToMeals] = useState(false);
   const [addedToMeals, setAddedToMeals] = useState(false);
-
-  useEffect(() => {
-    if (!id) return;
-    getRecipeById(id).then(setRecipe);
-  }, [id]);
 
   const onAddToMeals = async () => {
     if (!recipe || addingToMeals || addedToMeals) return;
@@ -47,7 +44,7 @@ export default function RecipeDetails() {
 
     setAddingToMeals(true);
     try {
-      await createMeal({
+      await insertMealLocal({
         userId,
         recipeId: recipe.id,
         title: recipe.title,
@@ -67,7 +64,7 @@ export default function RecipeDetails() {
     }
   };
 
-  if (recipe === undefined) {
+  if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-neutral">
         <ActivityIndicator size="large" color={colors.primary} />
@@ -75,7 +72,7 @@ export default function RecipeDetails() {
     );
   }
 
-  if (recipe === null) {
+  if (!recipe) {
     return (
       <View className="flex-1 items-center justify-center bg-neutral px-8">
         <Text className="font-urbanist-semibold text-base text-ink">Recipe not found.</Text>
@@ -89,7 +86,7 @@ export default function RecipeDetails() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
         <RecipeHero
-          image={recipe.image ?? ''}
+          image={recipe.image}
           onEdit={() => router.push(`/addRecipes?id=${recipe.id}`)}
         />
 

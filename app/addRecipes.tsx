@@ -19,7 +19,8 @@ import * as ImagePicker from "expo-image-picker";
 import DropDownPicker from "react-native-dropdown-picker";
 
 import { SectionCard } from "@/components/ui/SectionCard";
-import { createRecipe, updateRecipe, getRecipeById } from "./lib/recipes";
+import { useRecipeById } from "./hooks/useRecipes";
+import { insertRecipeLocal, updateRecipeLocal } from "./powersync/writes";
 import { uploadImage } from "./lib/upload";
 import { estimateNutrition } from "./lib/estimateNutrition";
 import { Alert } from "@/lib/alert";
@@ -36,8 +37,9 @@ export default function AddRecipeScreen() {
   const { id: editId } = useLocalSearchParams<{ id?: string }>();
   const isEditing = !!editId;
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
+  const { recipe: existingRecipe, isLoading: loadingExisting } = useRecipeById(editId);
+  const [seededFromId, setSeededFromId] = useState<string | null>(null);
 
-  const [loadingExisting, setLoadingExisting] = useState(isEditing);
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [recipe, setRecipe] = useState("");
   const [open, setOpen] = React.useState(false);
@@ -52,26 +54,29 @@ export default function AddRecipeScreen() {
   const [estimating, setEstimating] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Seed the form once from the watched recipe (only the first time it
+  // becomes available for this editId) so further local edits aren't
+  // clobbered by refetches as the underlying row changes.
   useEffect(() => {
-    if (!editId) return;
-    getRecipeById(editId).then((existing) => {
-      if (!existing) {
-        Alert.alert("Recipe not found", "This recipe may have been deleted.");
-        setLoadingExisting(false);
-        return;
-      }
-      setImageUri(existing.image);
-      setRecipe(existing.title);
-      setValue(existing.category);
-      setIngredients(existing.ingredients?.length ? existing.ingredients : ["", "", ""]);
-      setSteps(existing.steps?.length ? existing.steps : ["", ""]);
-      setCalories(String(existing.calories ?? existing.nutritions?.calories ?? ""));
-      setProtein(String(existing.nutritions?.protein ?? ""));
-      setFat(String(existing.nutritions?.fat ?? ""));
-      setCarbs(String(existing.nutritions?.carbs ?? ""));
-      setLoadingExisting(false);
-    });
-  }, [editId]);
+    if (!editId || loadingExisting || seededFromId === editId) return;
+
+    if (!existingRecipe) {
+      Alert.alert("Recipe not found", "This recipe may have been deleted.");
+      setSeededFromId(editId);
+      return;
+    }
+
+    setImageUri(existingRecipe.image);
+    setRecipe(existingRecipe.title);
+    setValue(existingRecipe.category);
+    setIngredients(existingRecipe.ingredients?.length ? existingRecipe.ingredients : ["", "", ""]);
+    setSteps(existingRecipe.steps?.length ? existingRecipe.steps : ["", ""]);
+    setCalories(String(existingRecipe.calories ?? existingRecipe.nutritions?.calories ?? ""));
+    setProtein(String(existingRecipe.nutritions?.protein ?? ""));
+    setFat(String(existingRecipe.nutritions?.fat ?? ""));
+    setCarbs(String(existingRecipe.nutritions?.carbs ?? ""));
+    setSeededFromId(editId);
+  }, [editId, existingRecipe, loadingExisting, seededFromId]);
 
   const addIngredient = () => {
     setIngredients([...ingredients, ""]);
@@ -204,7 +209,7 @@ export default function AddRecipeScreen() {
       };
 
       if (isEditing && editId) {
-        await updateRecipe(editId, {
+        await updateRecipeLocal(editId, {
           title: recipe.trim(),
           category: value,
           image: uploadedImageUrl,
@@ -214,7 +219,7 @@ export default function AddRecipeScreen() {
           steps: cleanedSteps,
         });
       } else {
-        await createRecipe({
+        await insertRecipeLocal({
           userId,
           title: recipe.trim(),
           category: value,

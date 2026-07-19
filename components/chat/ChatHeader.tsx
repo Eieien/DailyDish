@@ -14,14 +14,23 @@ export const ChatHeader: React.FC = () => {
   };
 
   return (
-    <View className="flex-row items-center gap-3 px-4 pb-3 pt-2">
+    <View className="flex-row items-center justify-between gap-3 px-4 pb-3 pt-2">
+      <View className="flex-row items-center gap-3">
+        <Pressable
+          onPress={goBack}
+          hitSlop={12}
+          className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
+          <Ionicons name="chevron-back" size={20} color={colors.ink} />
+        </Pressable>
+        <Text className="font-urbanist-bold text-lg text-ink">DailyDish AI</Text>
+      </View>
+
       <Pressable
-        onPress={goBack}
+        onPress={() => router.push('/chatHistory')}
         hitSlop={12}
         className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
-        <Ionicons name="chevron-back" size={20} color={colors.ink} />
+        <Ionicons name="time-outline" size={20} color={colors.ink} />
       </Pressable>
-      <Text className="font-urbanist-bold text-lg text-ink">DailyDish AI</Text>
     </View>
   );
 };
