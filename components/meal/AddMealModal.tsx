@@ -14,14 +14,6 @@ import type { MealSlot } from "@/data/types";
 const SLOTS: MealSlot[] = ["Breakfast", "Lunch", "Dinner", "Snacks"];
 type SlotFilter = MealSlot | "All";
 
-function guessCategoryByTime(): MealSlot {
-  const hour = new Date().getHours();
-  if (hour < 11) return "Breakfast";
-  if (hour < 15) return "Lunch";
-  if (hour < 21) return "Dinner";
-  return "Snacks";
-}
-
 type Props = {
   visible: boolean;
   userId: string | null | undefined;
@@ -37,7 +29,7 @@ function AddMealModalContent({
   const recipes = useRecipes(userId);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [slotFilter, setSlotFilter] = useState<SlotFilter>(guessCategoryByTime());
+  const [slotFilter, setSlotFilter] = useState<SlotFilter>("All");
 
   const filteredRecipes = useMemo(() => {
     const query = search.trim().toLowerCase();

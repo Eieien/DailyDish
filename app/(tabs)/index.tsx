@@ -19,6 +19,7 @@ import { dailyProgress as goalDefaults } from "../../data/mockData";
 import { Recipe, DailyProgress } from "../../data/types";
 import { getUser, postUsers } from "../lib/user";
 import { toMealEntry } from "../lib/meals";
+import { buildRecapText, getYesterdaysTotals } from "../lib/dailyRecap";
 import { toRecipeCardData } from "../lib/recipes";
 import { setMealCompletedLocal, deleteMealLocal, updateUserLocal } from "../powersync/writes";
 import { useUserProfile } from "../hooks/useUserProfile";
@@ -39,6 +40,34 @@ export default function HomeScreen() {
   const mealRows = useMealsForDate(userId);
   const recipeRows = useRecipes(userId);
   const recipes = useMemo(() => recipeRows.map(toRecipeCardData), [recipeRows]);
+  const [recapMessage, setRecapMessage] = useState<string | null>(null);
+
+  const todayGreeting = useMemo(
+    () => new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }),
+    []
+  );
+
+  // Computed (non-LLM) recap of yesterday's logged meals — same logic used in
+  // the chat screen's auto-recap message, just rendered as a persistent card
+  // here instead of a one-time chat message.
+  useEffect(() => {
+    if (!userId) {
+      setRecapMessage(null);
+      return;
+    }
+    let cancelled = false;
+    getYesterdaysTotals(userId)
+      .then((yesterday) => {
+        if (cancelled) return;
+        setRecapMessage(buildRecapText(yesterday, userProfile?.dailyCalorieTarget ?? null));
+      })
+      .catch(() => {
+        if (!cancelled) setRecapMessage(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, userProfile?.dailyCalorieTarget]);
 
   // One-time bootstrap: ensures a "user" row exists server-side so PowerSync's
   // sync rules (which key off it) have something to replicate down. Runs once
@@ -134,14 +163,11 @@ export default function HomeScreen() {
         >
           <Header
             name={userProfile ? userProfile.name : "Loading.."}
-            subtitle="BLABLABLALA"
+            subtitle={todayGreeting}
             onPressAvatar={() => router.push("/(tabs)/settings")}
           />
 
-          <DailyRecapCard
-            date="July 2, 2026"
-            message="Great job! You're 750 kcal under your daily goal. Keep it up! 👍"
-          />
+          {recapMessage ? <DailyRecapCard date="Yesterday" message={recapMessage} /> : null}
 
           <DailyGoalCard
             goalLabel={goalLabel(userProfile?.dietGoal ?? null)}
