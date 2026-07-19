@@ -100,12 +100,7 @@ function AddMealModalContent({
           </View>
 
           <Text className="mb-2 text-xs font-semibold text-[#9C9088]">Log as</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mb-4"
-            contentContainerStyle={{ gap: 8 }}
-          >
+          <View className="mb-4 flex-row flex-wrap" style={{ gap: 8 }}>
             {(["All", ...SLOTS] as SlotFilter[]).map((slot) => {
               const active = slotFilter === slot;
               return (
@@ -116,24 +111,27 @@ function AddMealModalContent({
                     active ? "bg-[#C85A3A] border-[#C85A3A]" : "bg-white border-[#E2DDD9]"
                   }`}
                 >
-                  <Text className={`text-xs font-semibold ${active ? "text-white" : "text-[#9C9088]"}`}>
+                  <Text
+                    className={`text-xs font-semibold ${active ? "text-white" : "text-[#9C9088]"}`}
+                    numberOfLines={1}
+                  >
                     {slot}
                   </Text>
                 </Pressable>
               );
             })}
-          </ScrollView>
+          </View>
 
-          {filteredRecipes.length === 0 ? (
-            <View className="items-center py-8">
-              <Ionicons name="search-outline" size={22} color={colors.muted} />
-              <Text className="mt-3 text-center text-sm text-[#9C9088]">
-                No recipes match {search ? `"${search}"` : "this filter"}.
-              </Text>
-            </View>
-          ) : (
-            <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
-              {filteredRecipes.map((recipe, index) => (
+          <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
+            {filteredRecipes.length === 0 ? (
+              <View className="items-center py-8">
+                <Ionicons name="search-outline" size={22} color={colors.muted} />
+                <Text className="mt-3 text-center text-sm text-[#9C9088]">
+                  No recipes match {search ? `"${search}"` : "this filter"}.
+                </Text>
+              </View>
+            ) : (
+              filteredRecipes.map((recipe, index) => (
                 <Pressable
                   key={recipe.id}
                   onPress={() => onPressRecipe(recipe)}
@@ -158,9 +156,9 @@ function AddMealModalContent({
                     <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
                   )}
                 </Pressable>
-              ))}
-            </ScrollView>
-          )}
+              ))
+            )}
+          </ScrollView>
         </>
       )}
 
