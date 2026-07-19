@@ -2,12 +2,12 @@ import type { ChatMessage } from '../types/chat';
 
 export async function sendChatMessage(
   messages: ChatMessage[],
-  userId?: string | null
+  options?: { userId?: string | null; context?: string }
 ): Promise<string> {
   const response = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, userId }),
+    body: JSON.stringify({ messages, userId: options?.userId, context: options?.context }),
   });
 
   const data = await response.json().catch(() => null);

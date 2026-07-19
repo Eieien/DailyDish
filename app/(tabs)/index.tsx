@@ -12,6 +12,7 @@ import TodaysMeals from "../../components/TodaysMeals";
 import RecipesSection from "../../components/RecipesSection";
 import BottomNav from "../../components/BottomNav";
 import AddMealModal from "../../components/meal/AddMealModal";
+import ScanFoodModal from "../../components/meal/ScanFoodModal";
 import { GoalPickerModal, goalLabel } from "../../components/goal/GoalPickerModal";
 
 import { dailyProgress as goalDefaults } from "../../data/mockData";
@@ -30,6 +31,7 @@ export default function HomeScreen() {
   const { user: clerkUser } = useUser();
   const router = useRouter();
   const [addMealModalVisible, setAddMealModalVisible] = useState(false);
+  const [scanMealModalVisible, setScanMealModalVisible] = useState(false);
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [savingGoal, setSavingGoal] = useState(false);
 
@@ -154,6 +156,7 @@ export default function HomeScreen() {
             onToggle={toggleMeal}
             onDelete={onDeleteMeal}
             onAddMeal={() => setAddMealModalVisible(true)}
+            onScanMeal={() => setScanMealModalVisible(true)}
           />
 
           <RecipesSection
@@ -172,6 +175,13 @@ export default function HomeScreen() {
         userId={userId}
         onClose={() => setAddMealModalVisible(false)}
         onAdded={() => setAddMealModalVisible(false)}
+      />
+
+      <ScanFoodModal
+        visible={scanMealModalVisible}
+        userId={userId}
+        onClose={() => setScanMealModalVisible(false)}
+        onAdded={() => setScanMealModalVisible(false)}
       />
 
       <GoalPickerModal

@@ -22,3 +22,25 @@ export async function estimateNutrition(
 
   return res.json();
 }
+
+export type FoodScanEstimate = NutritionEstimate & {
+  foodName: string;
+};
+
+export async function estimateNutritionFromImage(
+  imageBase64: string,
+  mimeType: string
+): Promise<FoodScanEstimate> {
+  const res = await fetch("/api/estimate-nutrition-from-image", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imageBase64, mimeType }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.error ?? "Failed to identify food from photo.");
+  }
+
+  return res.json();
+}

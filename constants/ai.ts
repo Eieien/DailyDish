@@ -42,3 +42,23 @@ export const NUTRITION_ESTIMATE_SCHEMA = {
   },
   required: ['calories', 'protein', 'fat', 'carbs'],
 } as const;
+
+export const FOOD_SCAN_SYSTEM_INSTRUCTION = `You identify food from a photo and estimate its nutrition.
+Look at the image, identify the dish or foods shown, and estimate nutrition for the visible portion.
+Give your best reasonable estimate using typical values for such a dish — never refuse, even if unsure; make your best guess.
+Respond only with the requested JSON fields, no extra commentary.`;
+
+export const FOOD_SCAN_SCHEMA = {
+  type: 'object',
+  properties: {
+    foodName: {
+      type: 'string',
+      description: 'A short name for the food shown, e.g. "Chicken Adobo with Rice"',
+    },
+    calories: { type: 'number', description: 'Estimated calories for the visible portion (kcal)' },
+    protein: { type: 'number', description: 'Estimated protein for the visible portion (g)' },
+    fat: { type: 'number', description: 'Estimated fat for the visible portion (g)' },
+    carbs: { type: 'number', description: 'Estimated carbohydrates for the visible portion (g)' },
+  },
+  required: ['foodName', 'calories', 'protein', 'fat', 'carbs'],
+} as const;
