@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Recipe } from "../data/types";
+import { ImageOrPlaceholder } from "./ui/ImageOrPlaceholder";
 
 type Props = {
   recipe: Recipe;
@@ -16,7 +17,7 @@ export default function RecipeCard({ recipe, onPress, onDelete }: Props) {
       style={{ width: "48%" }}
       className="bg-white rounded-2xl mb-4 overflow-hidden"
     >
-      <Image source={{ uri: recipe.image }} className="w-full h-24" />
+      <ImageOrPlaceholder uri={recipe.image} className="w-full h-24" />
       <View className="p-3">
         <Text className="font-semibold text-[#2B2320]" numberOfLines={1}>
           {recipe.title}

@@ -13,7 +13,7 @@ export type Ingredient = {
 export type Recipe = {
   id: string;
   title: string;
-  image: string; // remote URL or require(...) result
+  image: string | null;
   description: string;
   macros: Macro;
   ingredients: Ingredient[];
@@ -27,7 +27,7 @@ export type MealEntry = {
   slot: MealSlot;
   recipeTitle: string;
   calories: number;
-  imageUrl: string;
+  imageUrl: string | null;
   completed: boolean;
 };
 

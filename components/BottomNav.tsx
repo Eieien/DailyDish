@@ -12,6 +12,12 @@ const tabs = [
     pathnames: ["/progress", "/(tabs)/progress"],
   },
   {
+    key: "chat",
+    icon: "chatbubble-ellipses-outline",
+    path: "/chat",
+    pathnames: ["/chat"],
+  },
+  {
     key: "grid",
     icon: "grid-outline",
     path: "/(tabs)/recipe",
@@ -27,10 +33,15 @@ export default function BottomNav() {
     <View className="flex-row items-center justify-around bg-white rounded-3xl mx-8 mb-4 py-3 shadow-sm">
       {tabs.map((tab) => {
         const isActive = (tab.pathnames as readonly string[]).includes(pathname);
+        // Chat is a standalone stack route (not part of the (tabs) group), so
+        // it's pushed rather than replacing the current tab in history.
+        const navigate = () =>
+          tab.key === "chat" ? router.push(tab.path as any) : router.replace(tab.path as any);
+
         return (
           <Pressable
             key={tab.key}
-            onPress={() => router.replace(tab.path as any)}
+            onPress={navigate}
             className={`w-11 h-11 rounded-full items-center justify-center ${
               isActive ? "bg-[#D2601A]" : ""
             }`}

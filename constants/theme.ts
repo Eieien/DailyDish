@@ -38,7 +38,3 @@ export const fonts = {
 
 export type ColorToken = keyof typeof colors;
 export type FontToken = keyof typeof fonts;
-
-/** Shown when a user has no avatarUrl set yet. */
-export const DEFAULT_AVATAR =
-  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200';

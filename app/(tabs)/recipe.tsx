@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, ScrollView, Pressable, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -10,7 +10,9 @@ import RecipesSection from "../../components/RecipesSection";
 import BottomNav from "../../components/BottomNav";
 
 import { Recipe } from "../../data/types";
-import { getRecipes, deleteRecipe, toRecipeCardData, type RecipeRow } from "../lib/recipes";
+import { toRecipeCardData } from "../lib/recipes";
+import { deleteRecipeLocal } from "../powersync/writes";
+import { useRecipes } from "../hooks/useRecipes";
 import { Alert } from "@/lib/alert";
 
 const CATEGORY_FILTERS = ["All", "Breakfast", "Lunch", "Dinner", "Snacks"] as const;
@@ -21,28 +23,9 @@ export default function RecipeScreen() {
   const router = useRouter();
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
   const [search, setSearch] = useState("");
-  const [rows, setRows] = useState<RecipeRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const rows = useRecipes(userId);
   const [category, setCategory] = useState<CategoryFilter>("All");
   const [sortOrder, setSortOrder] = useState<SortOrder>("az");
-
-  useFocusEffect(
-    useCallback(() => {
-      const loadRecipes = async () => {
-        if (!userId) return;
-        setLoading(true);
-        try {
-          const data = await getRecipes(userId);
-          setRows(data);
-        } catch (error) {
-          console.log("Failed to load recipes:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadRecipes();
-    }, [userId])
-  );
 
   const visibleRecipes: Recipe[] = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -76,14 +59,7 @@ export default function RecipeScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteRecipe(recipe.id);
-            setRows((prev) => prev.filter((r) => r.id !== recipe.id));
-          } catch {
-            Alert.alert("Failed to delete recipe", "Please try again.");
-          }
-        },
+        onPress: () => deleteRecipeLocal(recipe.id),
       },
     ]);
   };
@@ -133,7 +109,7 @@ export default function RecipeScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
         >
-          {!loading && visibleRecipes.length === 0 ? (
+          {visibleRecipes.length === 0 ? (
             <View className="items-center justify-center mt-16 px-8">
               <Ionicons name="restaurant-outline" size={28} color="#9C9088" />
               <Text className="text-sm text-[#9C9088] font-medium text-center mt-3">

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "start": "expo start",
     "prebuild": "expo prebuild",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
@@ -23,6 +23,12 @@
     "@expo/log-box": "^56.0.12",
     "@expo/vector-icons": "^15.0.2",
     "@google/genai": "^2.10.0",
+    "@journeyapps/react-native-quick-sqlite": "^2.5.2",
+    "@journeyapps/wa-sqlite": "^1.7.0",
+    "@powersync/common": "^1.57.2",
+    "@powersync/react": "^1.10.0",
+    "@powersync/react-native": "^1.35.9",
+    "@powersync/web": "^1.39.0",
     "@react-native-community/slider": "5.2.0",
     "@react-navigation/native": "^7.1.6",
     "@reduxjs/toolkit": "^2.12.0",
@@ -31,6 +37,7 @@
     "expo": "~56.0.15",
     "expo-checkbox": "~56.0.1",
     "expo-constants": "~56.0.19",
+    "expo-crypto": "~56.0.4",
     "expo-dev-client": "~56.0.21",
     "expo-font": "~56.0.5",
     "expo-image-picker": "~56.0.20",
@@ -71,5 +78,8 @@
     "tailwindcss": "^3.4.0",
     "typescript": "~6.0.3"
   },
-  "private": true
+  "private": true,
+  "trustedDependencies": [
+    "@journeyapps/wa-sqlite"
+  ]
 }

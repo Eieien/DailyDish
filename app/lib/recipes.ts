@@ -15,9 +15,6 @@ export type RecipeRow = {
   updatedAt: string;
 };
 
-const PLACEHOLDER_IMAGE =
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800";
-
 export async function getRecipes(userId?: string): Promise<RecipeRow[]> {
   const url = userId ? `/api/recipes?userId=${encodeURIComponent(userId)}` : "/api/recipes";
   const res = await fetch(url);
@@ -44,6 +41,7 @@ export async function getRecipeById(id: string): Promise<RecipeRow | null> {
 }
 
 export type CreateRecipeInput = {
+  id?: string;
   userId: string;
   title: string;
   category?: string | null;
@@ -106,7 +104,7 @@ export function toRecipeCardData(row: RecipeRow): RecipeCardData {
   return {
     id: row.id,
     title: row.title,
-    image: row.image ?? PLACEHOLDER_IMAGE,
+    image: row.image,
     description: row.description ?? "",
     macros: {
       calories: row.calories ?? row.nutritions?.calories ?? 0,

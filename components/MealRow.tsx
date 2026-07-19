@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Image, Pressable } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MealEntry } from "../data/types";
+import { ImageOrPlaceholder } from "./ui/ImageOrPlaceholder";
 
 type Props = {
   meal: MealEntry;
@@ -18,10 +19,7 @@ export default function MealRow({ meal, onToggle, onEdit, onDelete, isLast }: Pr
         isLast ? "" : "border-b border-[#F0E4DA]"
       }`}
     >
-      <Image
-        source={{ uri: meal.imageUrl }}
-        className="w-12 h-12 rounded-xl bg-orange-100"
-      />
+      <ImageOrPlaceholder uri={meal.imageUrl} className="w-12 h-12 rounded-xl bg-orange-100" />
       <View className="flex-1 ml-3">
         <Text className="font-semibold text-[#2B2320]">{meal.slot}</Text>
         <Text className="text-xs text-[#9C9088]">{meal.recipeTitle}</Text>

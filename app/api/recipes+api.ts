@@ -28,6 +28,7 @@ export async function POST(request: Request) {
   const [row] = await dbInstance
     .insert(recipes)
     .values({
+      ...(typeof body.id === "string" ? { id: body.id } : {}),
       userId: body.userId,
       title: body.title,
       category: body.category ?? null,
