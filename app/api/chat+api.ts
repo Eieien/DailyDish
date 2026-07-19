@@ -9,7 +9,9 @@ import { buildUserContext, HISTORY_WINDOW_DAYS } from '@/app/lib/aiContext';
 import dbInstance from '../../db/index';
 import { user, recipes, meal } from '../../db/schema';
 
-async function fetchUserContext(userId: string | null): Promise<string> {
+// Web fallback only — native sends a pre-built `context` from local
+// PowerSync storage instead (see app/chat.tsx / app/lib/aiContext.ts).
+async function fetchServerUserContext(userId: string | null): Promise<string> {
   if (!userId) return '';
 
   const [profileRow] = await dbInstance.select().from(user).where(eq(user.id, userId));
@@ -68,10 +70,12 @@ export async function POST(request: Request) {
 
   let messages: ChatMessage[] = [];
   let userId: string | null = null;
+  let localContext = '';
   try {
     const body = await request.json();
     messages = Array.isArray(body?.messages) ? body.messages : [];
     userId = typeof body?.userId === 'string' ? body.userId : null;
+    localContext = typeof body?.context === 'string' ? body.context : '';
   } catch {
     return Response.json({ error: 'Invalid request body.' }, { status: 400 });
   }
@@ -85,7 +89,7 @@ export async function POST(request: Request) {
     parts: [{ text: message.text }],
   }));
 
-  const context = await fetchUserContext(userId);
+  const context = localContext || (await fetchServerUserContext(userId));
   const systemInstruction = context
     ? `${SYSTEM_INSTRUCTION}\n\nUser context (for personalizing answers — don't invent data beyond this):\n${context}`
     : SYSTEM_INSTRUCTION;

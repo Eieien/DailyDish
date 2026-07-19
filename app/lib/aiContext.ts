@@ -1,6 +1,12 @@
+import type { AbstractPowerSyncDatabase } from '@powersync/common';
+
 import type { UserProfile } from './user';
 import type { MealRow } from './meals';
+import { localIsoDate } from './meals';
 import type { RecipeRow } from './recipes';
+import { mapUserRow } from '../hooks/useUserProfile';
+import { mapMealRow } from '../hooks/useMealsForDate';
+import { mapRecipeRow } from '../hooks/useRecipes';
 
 function mealCalories(meal: MealRow): number {
   return meal.calories ?? meal.nutritions?.calories ?? 0;
@@ -13,6 +19,40 @@ function recipeCalories(recipe: RecipeRow): number {
 const HISTORY_WINDOW_DAYS = 30;
 
 export { HISTORY_WINDOW_DAYS };
+
+/**
+ * Native-only: reads profile/recipes/meal history straight from local
+ * PowerSync storage (fresh at call time, not a cached hook value) instead of
+ * round-tripping to the server. Only meaningful where PowerSync actually
+ * syncs — do not call this on web, where `db` is an inert placeholder.
+ */
+export async function fetchLocalUserContext(
+  db: AbstractPowerSyncDatabase,
+  userId: string | null | undefined
+): Promise<string> {
+  if (!userId) return '';
+
+  const profileRow = await db.getOptional<any>('SELECT * FROM "user" WHERE id = ?', [userId]);
+  if (!profileRow) return '';
+
+  const recipeRows = await db.getAll<any>(
+    'SELECT * FROM recipes WHERE user_id = ? ORDER BY created_at DESC',
+    [userId]
+  );
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - HISTORY_WINDOW_DAYS);
+  const mealRows = await db.getAll<any>(
+    'SELECT * FROM meal WHERE user_id = ? AND meal_date >= ? ORDER BY meal_date DESC, created_at',
+    [userId, localIsoDate(cutoff)]
+  );
+
+  return buildUserContext(
+    mapUserRow(profileRow),
+    mealRows.map(mapMealRow),
+    recipeRows.map(mapRecipeRow)
+  );
+}
 
 /**
  * Pure formatter — takes already-fetched profile/meal/recipe rows (from

@@ -3,6 +3,7 @@ import { ActivityIndicator, View, ScrollView, KeyboardAvoidingView, Platform } f
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams } from 'expo-router';
+import { usePowerSync } from '@powersync/react';
 
 import {
   ChatHeader,
@@ -12,8 +13,15 @@ import {
   TypingIndicator,
 } from '../components/chat';
 import { sendChatMessage } from './lib/ai';
-import { appendMessage, createSession, getSession, updateSessionTitle } from './lib/sessions';
+import {
+  appendMessage,
+  createSession,
+  getSession,
+  listSessions,
+  updateSessionTitle,
+} from './lib/sessions';
 import { useUserProfile } from './hooks/useUserProfile';
+import { fetchLocalUserContext } from './lib/aiContext';
 import {
   buildRecapText,
   getYesterdaysTotals,
@@ -25,6 +33,7 @@ import { colors } from '@/constants/theme';
 import type { ChatMessage } from './types/chat';
 
 const GREETING_TEXT = "Hi! I'm your DailyDish AI assistant. How can I help you today?";
+const IS_NATIVE = Platform.OS !== 'web';
 
 function truncateTitle(text: string): string {
   const trimmed = text.trim();
@@ -42,6 +51,7 @@ export default function Chat() {
 
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
   const userProfile = useUserProfile(userId);
+  const powersync = usePowerSync();
   const { sessionId: resumeSessionId } = useLocalSearchParams<{ sessionId?: string }>();
 
   const nextId = () => {
@@ -53,10 +63,30 @@ export default function Chat() {
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
   };
 
-  // Resume a past session (from History), or start a fresh one — optionally
-  // prefaced with a computed (non-LLM) recap of yesterday's totals.
+  // Reach a specific session (from History), or otherwise continue the most
+  // recently active one — only starting a brand new session if the user has
+  // none yet. Either way, append a computed (non-LLM) recap of yesterday's
+  // totals if it hasn't been shown yet today.
   useEffect(() => {
     let cancelled = false;
+
+    const loadMessagesFrom = (rows: { id: string; role: string; message: string }[]) =>
+      rows.map((m) => ({
+        id: m.id,
+        role: (m.role === 'user' ? 'user' : 'assistant') as ChatMessage['role'],
+        text: m.message,
+      }));
+
+    const maybeAppendRecap = async (activeSessionId: string) => {
+      if (!userId || !isPastRecapCutoff() || (await hasShownRecapToday(userId))) return;
+
+      const yesterday = await getYesterdaysTotals(userId);
+      const recapText = buildRecapText(yesterday, userProfile?.dailyCalorieTarget ?? null);
+      if (cancelled) return;
+      setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', text: recapText }]);
+      appendMessage(activeSessionId, 'assistant', recapText).catch(() => {});
+      markRecapShown(userId).catch(() => {});
+    };
 
     const setup = async () => {
       if (resumeSessionId) {
@@ -65,35 +95,33 @@ export default function Chat() {
         if (result) {
           setSessionId(result.session.id);
           setTitled(result.session.title !== 'New chat');
-          setMessages(
-            result.messages.map((m) => ({
-              id: m.id,
-              role: m.role === 'user' ? 'user' : 'assistant',
-              text: m.message,
-            }))
-          );
+          setMessages(loadMessagesFrom(result.messages));
           return;
         }
       }
 
       if (!userId) return;
 
+      const existing = await listSessions(userId);
+      if (cancelled) return;
+
+      // listSessions is ordered by updatedAt desc, so [0] is the most recent.
+      const mostRecent = existing.length > 0 ? await getSession(existing[0].id) : null;
+      if (cancelled) return;
+
+      if (mostRecent) {
+        setSessionId(mostRecent.session.id);
+        setTitled(mostRecent.session.title !== 'New chat');
+        setMessages(loadMessagesFrom(mostRecent.messages));
+        await maybeAppendRecap(mostRecent.session.id);
+        return;
+      }
+
       const session = await createSession(userId);
       if (cancelled) return;
       setSessionId(session.id);
-
-      const initial: ChatMessage[] = [];
-
-      if (isPastRecapCutoff() && !(await hasShownRecapToday(userId))) {
-        const yesterday = await getYesterdaysTotals(userId);
-        const recapText = buildRecapText(yesterday, userProfile?.dailyCalorieTarget ?? null);
-        initial.push({ id: nextId(), role: 'assistant', text: recapText });
-        appendMessage(session.id, 'assistant', recapText).catch(() => {});
-        markRecapShown(userId).catch(() => {});
-      }
-
-      initial.push({ id: nextId(), role: 'assistant', text: GREETING_TEXT });
-      if (!cancelled) setMessages(initial);
+      setMessages([{ id: nextId(), role: 'assistant', text: GREETING_TEXT }]);
+      await maybeAppendRecap(session.id);
     };
 
     setup().catch((error) => {
@@ -124,7 +152,11 @@ export default function Chat() {
     }
 
     try {
-      const reply = await sendChatMessage(history, userId);
+      // Native reads context straight from local PowerSync storage (fresh at
+      // send time); web has no local sync to read, so the server builds it
+      // from Postgres instead (see app/api/chat+api.ts).
+      const context = IS_NATIVE ? await fetchLocalUserContext(powersync, userId) : undefined;
+      const reply = await sendChatMessage(history, { userId, context });
       setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', text: reply }]);
       appendMessage(sessionId, 'assistant', reply).catch(() => {});
     } catch (error) {
