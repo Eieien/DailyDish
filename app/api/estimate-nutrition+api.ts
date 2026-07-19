@@ -14,21 +14,24 @@ export async function POST(request: Request) {
 
   let title = '';
   let ingredients: string[] = [];
+  let steps: string[] = [];
   try {
     const body = await request.json();
     title = typeof body?.title === 'string' ? body.title : '';
     ingredients = Array.isArray(body?.ingredients) ? body.ingredients : [];
+    steps = Array.isArray(body?.steps) ? body.steps : [];
   } catch {
     return Response.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
-  if (!title.trim()) {
-    return Response.json({ error: 'A recipe title is required.' }, { status: 400 });
+  if (!title.trim() || ingredients.length === 0 || steps.length === 0) {
+    return Response.json(
+      { error: 'A recipe name, ingredients, and steps are required.' },
+      { status: 400 }
+    );
   }
 
-  const prompt = `Recipe: ${title}\nIngredients: ${
-    ingredients.length ? ingredients.join(', ') : '(not specified)'
-  }`;
+  const prompt = `Recipe: ${title}\nIngredients: ${ingredients.join(', ')}\nSteps: ${steps.join(' | ')}`;
 
   try {
     const ai = new GoogleGenAI({ apiKey });
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
 
     const parsed = JSON.parse(text);
     return Response.json({
+      recognized: parsed.recognized !== false,
       calories: Math.round(Number(parsed.calories) || 0),
       protein: Math.round(Number(parsed.protein) || 0),
       fat: Math.round(Number(parsed.fat) || 0),

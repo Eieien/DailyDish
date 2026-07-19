@@ -1,6 +1,6 @@
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 
-import { meal } from "../../../db/schema";
+import { meal, recipes } from "../../../db/schema";
 import dbInstance from "../../../db/index";
 
 type DayTotals = {
@@ -25,8 +25,14 @@ export async function GET(request: Request) {
   const cutoffIso = cutoff.toISOString().slice(0, 10);
 
   const rows = await dbInstance
-    .select()
+    .select({
+      mealDate: meal.mealDate,
+      completed: meal.completed,
+      calories: sql<number | null>`COALESCE(${recipes.calories}, ${meal.calories})`,
+      nutritions: sql<unknown>`COALESCE(${recipes.nutritions}, ${meal.nutritions})`,
+    })
     .from(meal)
+    .leftJoin(recipes, eq(meal.recipeId, recipes.id))
     .where(and(eq(meal.userId, userId), gte(meal.mealDate, cutoffIso)));
 
   const byDate = new Map<string, DayTotals>();

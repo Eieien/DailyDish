@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { recipes } from "../../db/schema";
 import dbInstance from "../../db/index";
@@ -7,13 +7,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
+  // Archived (soft-deleted) recipes are excluded from listing/browsing, but
+  // stay in the table so meals logged from them keep their history.
   const rows = userId
     ? await dbInstance
         .select()
         .from(recipes)
-        .where(eq(recipes.userId, userId))
+        .where(and(eq(recipes.userId, userId), isNull(recipes.deletedAt)))
         .orderBy(desc(recipes.createdAt))
-    : await dbInstance.select().from(recipes).orderBy(desc(recipes.createdAt));
+    : await dbInstance
+        .select()
+        .from(recipes)
+        .where(isNull(recipes.deletedAt))
+        .orderBy(desc(recipes.createdAt));
 
   return Response.json(rows);
 }

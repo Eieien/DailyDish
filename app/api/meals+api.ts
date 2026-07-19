@@ -1,10 +1,32 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
-import { meal } from "../../db/schema";
+import { meal, recipes } from "../../db/schema";
 import dbInstance from "../../db/index";
 
 function todayIsoDate() {
   return new Date().toISOString().slice(0, 10);
+}
+
+// Calories/nutrition always come live from the linked recipe (falling back to
+// the meal's own stored snapshot for legacy recipe-less rows) — meal's job is
+// just to log what/when/whether-eaten, not to own a separate copy of macros
+// that can drift from the recipe.
+function mealSelectColumns() {
+  return {
+    id: meal.id,
+    userId: meal.userId,
+    recipeId: meal.recipeId,
+    title: meal.title,
+    category: meal.category,
+    calories: sql<number | null>`COALESCE(${recipes.calories}, ${meal.calories})`,
+    imageUrl: meal.imageUrl,
+    completed: meal.completed,
+    mealDate: meal.mealDate,
+    nutritions: sql<unknown>`COALESCE(${recipes.nutritions}, ${meal.nutritions})`,
+    ingredients: meal.ingredients,
+    createdAt: meal.createdAt,
+    updatedAt: meal.updatedAt,
+  };
 }
 
 export async function GET(request: Request) {
@@ -17,8 +39,9 @@ export async function GET(request: Request) {
   }
 
   const rows = await dbInstance
-    .select()
+    .select(mealSelectColumns())
     .from(meal)
+    .leftJoin(recipes, eq(meal.recipeId, recipes.id))
     .where(and(eq(meal.userId, userId), eq(meal.mealDate, date)));
 
   return Response.json(rows);

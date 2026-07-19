@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { and, desc, eq, gte } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, sql } from 'drizzle-orm';
 
 import { GEMINI_MODEL, SYSTEM_INSTRUCTION, GENERATION_CONFIG } from '@/constants/ai';
 import type { ChatMessage } from '@/app/types/chat';
@@ -20,7 +20,7 @@ async function fetchServerUserContext(userId: string | null): Promise<string> {
   const recipeRows = await dbInstance
     .select()
     .from(recipes)
-    .where(eq(recipes.userId, userId))
+    .where(and(eq(recipes.userId, userId), isNull(recipes.deletedAt)))
     .orderBy(desc(recipes.createdAt));
 
   const cutoff = new Date();
@@ -28,8 +28,23 @@ async function fetchServerUserContext(userId: string | null): Promise<string> {
   const cutoffDate = cutoff.toISOString().slice(0, 10);
 
   const mealRows = await dbInstance
-    .select()
+    .select({
+      id: meal.id,
+      userId: meal.userId,
+      recipeId: meal.recipeId,
+      title: meal.title,
+      category: meal.category,
+      calories: sql<number | null>`COALESCE(${recipes.calories}, ${meal.calories})`,
+      imageUrl: meal.imageUrl,
+      completed: meal.completed,
+      mealDate: meal.mealDate,
+      nutritions: sql<unknown>`COALESCE(${recipes.nutritions}, ${meal.nutritions})`,
+      ingredients: meal.ingredients,
+      createdAt: meal.createdAt,
+      updatedAt: meal.updatedAt,
+    })
     .from(meal)
+    .leftJoin(recipes, eq(meal.recipeId, recipes.id))
     .where(and(eq(meal.userId, userId), gte(meal.mealDate, cutoffDate)))
     .orderBy(desc(meal.mealDate));
 
@@ -54,6 +69,7 @@ async function fetchServerUserContext(userId: string | null): Promise<string> {
         ...row,
         createdAt: row.createdAt.toISOString(),
         updatedAt: row.updatedAt.toISOString(),
+        deletedAt: row.deletedAt ? row.deletedAt.toISOString() : null,
         nutritions: row.nutritions as RecipeRow['nutritions'],
         ingredients: row.ingredients as RecipeRow['ingredients'],
         steps: row.steps as RecipeRow['steps'],

@@ -22,10 +22,10 @@ function MealEditModalContent({ meal, onClose, onSaved }: Omit<Props, "visible">
   const [imageUrl, setImageUrl] = useState(meal!.imageUrl);
   const [title, setTitle] = useState(meal!.title);
   const [category, setCategory] = useState(meal!.category ?? "Breakfast");
-  const [calories, setCalories] = useState(String(meal!.calories ?? meal!.nutritions?.calories ?? ""));
-  const [protein, setProtein] = useState(String(meal!.nutritions?.protein ?? ""));
-  const [fat, setFat] = useState(String(meal!.nutritions?.fat ?? ""));
-  const [carbs, setCarbs] = useState(String(meal!.nutritions?.carbs ?? ""));
+  const calories = meal!.calories ?? meal!.nutritions?.calories ?? 0;
+  const protein = meal!.nutritions?.protein ?? 0;
+  const fat = meal!.nutritions?.fat ?? 0;
+  const carbs = meal!.nutritions?.carbs ?? 0;
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -84,13 +84,6 @@ function MealEditModalContent({ meal, onClose, onSaved }: Omit<Props, "visible">
         title: title.trim(),
         category,
         imageUrl,
-        calories: parseInt(calories, 10) || 0,
-        nutritions: {
-          calories: parseInt(calories, 10) || 0,
-          protein: parseInt(protein, 10) || 0,
-          fat: parseInt(fat, 10) || 0,
-          carbs: parseInt(carbs, 10) || 0,
-        },
       });
       onSaved();
       onClose();
@@ -149,43 +142,25 @@ function MealEditModalContent({ meal, onClose, onSaved }: Omit<Props, "visible">
           })}
         </View>
 
-        <Text className="text-xs text-[#9C9088] font-medium mb-2">Nutrition</Text>
+        <Text className="text-xs text-[#9C9088] font-medium mb-2">
+          Nutrition (from the recipe)
+        </Text>
         <View className="flex-row gap-2 mb-5">
-          <View className="flex-1">
+          <View className="flex-1 items-center rounded-xl bg-[#FAF7F4] py-2">
             <Text className="text-[10px] text-[#9C9088] mb-1">Calories</Text>
-            <TextInput
-              value={calories}
-              onChangeText={setCalories}
-              keyboardType="number-pad"
-              className="h-10 rounded-xl border border-[#E2DDD9] bg-white px-2 text-xs text-[#2B2320]"
-            />
+            <Text className="text-xs font-semibold text-[#2B2320]">{calories}</Text>
           </View>
-          <View className="flex-1">
+          <View className="flex-1 items-center rounded-xl bg-[#FAF7F4] py-2">
             <Text className="text-[10px] text-[#9C9088] mb-1">Protein</Text>
-            <TextInput
-              value={protein}
-              onChangeText={setProtein}
-              keyboardType="number-pad"
-              className="h-10 rounded-xl border border-[#E2DDD9] bg-white px-2 text-xs text-[#2B2320]"
-            />
+            <Text className="text-xs font-semibold text-[#2B2320]">{protein}</Text>
           </View>
-          <View className="flex-1">
+          <View className="flex-1 items-center rounded-xl bg-[#FAF7F4] py-2">
             <Text className="text-[10px] text-[#9C9088] mb-1">Fat</Text>
-            <TextInput
-              value={fat}
-              onChangeText={setFat}
-              keyboardType="number-pad"
-              className="h-10 rounded-xl border border-[#E2DDD9] bg-white px-2 text-xs text-[#2B2320]"
-            />
+            <Text className="text-xs font-semibold text-[#2B2320]">{fat}</Text>
           </View>
-          <View className="flex-1">
+          <View className="flex-1 items-center rounded-xl bg-[#FAF7F4] py-2">
             <Text className="text-[10px] text-[#9C9088] mb-1">Carbs</Text>
-            <TextInput
-              value={carbs}
-              onChangeText={setCarbs}
-              keyboardType="number-pad"
-              className="h-10 rounded-xl border border-[#E2DDD9] bg-white px-2 text-xs text-[#2B2320]"
-            />
+            <Text className="text-xs font-semibold text-[#2B2320]">{carbs}</Text>
           </View>
         </View>
 

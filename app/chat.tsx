@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { ActivityIndicator, View, Text, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams } from 'expo-router';
 import { usePowerSync } from '@powersync/react';
@@ -21,6 +22,7 @@ import {
   updateSessionTitle,
 } from './lib/sessions';
 import { useUserProfile } from './hooks/useUserProfile';
+import { useIsOnline } from './hooks/useIsOnline';
 import { fetchLocalUserContext } from './lib/aiContext';
 import {
   buildRecapText,
@@ -52,6 +54,7 @@ export default function Chat() {
   const { userId } = useAuth({ treatPendingAsSignedOut: false });
   const userProfile = useUserProfile(userId);
   const powersync = usePowerSync();
+  const isOnline = useIsOnline();
   const { sessionId: resumeSessionId } = useLocalSearchParams<{ sessionId?: string }>();
 
   const nextId = () => {
@@ -137,7 +140,7 @@ export default function Chat() {
   }, [userId, resumeSessionId]);
 
   const handleSend = async (text: string) => {
-    if (isSending || !sessionId) return;
+    if (isSending || !sessionId || !isOnline) return;
 
     const userMessage: ChatMessage = { id: nextId(), role: 'user', text };
     const history = [...messages, userMessage];
@@ -172,6 +175,15 @@ export default function Chat() {
     <View className="flex-1 bg-neutral" style={{ paddingTop: insets.top }}>
       <ChatHeader />
 
+      {!isOnline ? (
+        <View className="mx-4 mt-2 flex-row items-center gap-2 rounded-2xl bg-[#F5E3D8] px-3 py-2">
+          <Ionicons name="cloud-offline-outline" size={16} color="#9C6B3E" />
+          <Text className="flex-1 text-xs font-semibold text-[#9C6B3E]">
+            You&apos;re offline — reconnect to chat with the assistant.
+          </Text>
+        </View>
+      ) : null}
+
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -195,7 +207,7 @@ export default function Chat() {
 
         <View className="gap-2 px-2 pt-2" style={{ paddingBottom: insets.bottom + 8 }}>
           <ChatQuickActions onAction={handleSend} />
-          <ChatInputBar onSend={handleSend} disabled={isSending || !sessionId} />
+          <ChatInputBar onSend={handleSend} disabled={isSending || !sessionId || !isOnline} />
         </View>
       </KeyboardAvoidingView>
     </View>

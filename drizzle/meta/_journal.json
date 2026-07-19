@@ -43,6 +43,13 @@
       "when": 1783885476125,
       "tag": "0005_chief_blackheart",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784468281951,
+      "tag": "0006_puzzling_scrambler",
+      "breakpoints": true
     }
   ]
 }

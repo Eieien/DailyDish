@@ -43,6 +43,10 @@ export const recipes = pgTable(
     steps: jsonb('steps'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    // Soft delete: every meal is backed by a recipe now (see meal.recipeId),
+    // so hard-deleting a recipe would strip history off any meal logged from
+    // it. "Deleting" a recipe just archives it instead.
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [index('recipes_user_id_idx').on(table.userId)]
 );

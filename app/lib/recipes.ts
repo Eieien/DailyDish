@@ -13,6 +13,7 @@ export type RecipeRow = {
   steps: string[] | null;
   createdAt: string;
   updatedAt: string;
+  deletedAt: string | null;
 };
 
 export async function getRecipes(userId?: string): Promise<RecipeRow[]> {

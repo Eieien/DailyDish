@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
+import { useMemo, useState } from "react";
+import { Modal, View, Text, TextInput, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "@/constants/theme";
@@ -9,6 +9,18 @@ import { localIsoDate } from "@/app/lib/meals";
 import { useRecipes } from "@/app/hooks/useRecipes";
 import { insertMealLocal } from "@/app/powersync/writes";
 import { ImageOrPlaceholder } from "@/components/ui/ImageOrPlaceholder";
+import type { MealSlot } from "@/data/types";
+
+const SLOTS: MealSlot[] = ["Breakfast", "Lunch", "Dinner", "Snacks"];
+type SlotFilter = MealSlot | "All";
+
+function guessCategoryByTime(): MealSlot {
+  const hour = new Date().getHours();
+  if (hour < 11) return "Breakfast";
+  if (hour < 15) return "Lunch";
+  if (hour < 21) return "Dinner";
+  return "Snacks";
+}
 
 type Props = {
   visible: boolean;
@@ -24,9 +36,24 @@ function AddMealModalContent({
 }: Omit<Props, "visible">) {
   const recipes = useRecipes(userId);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [slotFilter, setSlotFilter] = useState<SlotFilter>(guessCategoryByTime());
+
+  const filteredRecipes = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return recipes.filter((recipe) => {
+      const matchesSlot = slotFilter === "All" || recipe.category === slotFilter;
+      const matchesSearch = !query || recipe.title.toLowerCase().includes(query);
+      return matchesSlot && matchesSearch;
+    });
+  }, [recipes, search, slotFilter]);
 
   const onPressRecipe = async (recipe: RecipeRow) => {
     if (!userId || addingId) return;
+
+    // Logging under the selected slot (rather than always the recipe's own
+    // category) lets you log e.g. a "Dinner" recipe as tonight's snack.
+    const loggedCategory = slotFilter === "All" ? recipe.category : slotFilter;
 
     setAddingId(recipe.id);
     try {
@@ -34,7 +61,7 @@ function AddMealModalContent({
         userId,
         recipeId: recipe.id,
         title: recipe.title,
-        category: recipe.category,
+        category: loggedCategory,
         calories: recipe.calories ?? recipe.nutritions?.calories ?? null,
         imageUrl: recipe.image,
         completed: true,
@@ -52,7 +79,7 @@ function AddMealModalContent({
   };
 
   return (
-    <View className="w-full max-h-[80%] rounded-3xl bg-white p-5">
+    <View className="w-full max-h-[85%] rounded-3xl bg-white p-5">
       <Text className="text-base font-bold text-[#2B2320] mb-4">Add from My Recipes</Text>
 
       {recipes.length === 0 ? (
@@ -63,33 +90,86 @@ function AddMealModalContent({
           </Text>
         </View>
       ) : (
-        <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-          {recipes.map((recipe, index) => (
-            <Pressable
-              key={recipe.id}
-              onPress={() => onPressRecipe(recipe)}
-              disabled={addingId !== null}
-              className={`flex-row items-center py-3 ${
-                index === recipes.length - 1 ? "" : "border-b border-[#F0E4DA]"
-              }`}
-            >
-              <ImageOrPlaceholder uri={recipe.image} className="h-12 w-12 rounded-xl bg-[#FAF7F4]" />
-              <View className="ml-3 flex-1">
-                <Text className="font-semibold text-[#2B2320]" numberOfLines={1}>
-                  {recipe.title}
-                </Text>
-                <Text className="text-xs text-[#9C9088]">
-                  {recipe.calories ?? recipe.nutritions?.calories ?? 0} kcal
-                </Text>
-              </View>
-              {addingId === recipe.id ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
-              )}
-            </Pressable>
-          ))}
-        </ScrollView>
+        <>
+          <View className="mb-3 flex-row items-center gap-2 rounded-xl border border-[#E2DDD9] bg-[#FAF7F4] px-3">
+            <Ionicons name="search-outline" size={16} color={colors.muted} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search your recipes"
+              placeholderTextColor={colors.muted}
+              className="h-10 flex-1 text-sm text-[#2B2320]"
+            />
+            {search ? (
+              <Pressable onPress={() => setSearch("")} hitSlop={8}>
+                <Ionicons name="close-circle" size={16} color={colors.muted} />
+              </Pressable>
+            ) : null}
+          </View>
+
+          <Text className="mb-2 text-xs font-semibold text-[#9C9088]">Log as</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-4"
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {(["All", ...SLOTS] as SlotFilter[]).map((slot) => {
+              const active = slotFilter === slot;
+              return (
+                <Pressable
+                  key={slot}
+                  onPress={() => setSlotFilter(slot)}
+                  className={`rounded-full px-3 py-1.5 border ${
+                    active ? "bg-[#C85A3A] border-[#C85A3A]" : "bg-white border-[#E2DDD9]"
+                  }`}
+                >
+                  <Text className={`text-xs font-semibold ${active ? "text-white" : "text-[#9C9088]"}`}>
+                    {slot}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          {filteredRecipes.length === 0 ? (
+            <View className="items-center py-8">
+              <Ionicons name="search-outline" size={22} color={colors.muted} />
+              <Text className="mt-3 text-center text-sm text-[#9C9088]">
+                No recipes match {search ? `"${search}"` : "this filter"}.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={{ maxHeight: 320 }} showsVerticalScrollIndicator={false}>
+              {filteredRecipes.map((recipe, index) => (
+                <Pressable
+                  key={recipe.id}
+                  onPress={() => onPressRecipe(recipe)}
+                  disabled={addingId !== null}
+                  className={`flex-row items-center py-3 ${
+                    index === filteredRecipes.length - 1 ? "" : "border-b border-[#F0E4DA]"
+                  }`}
+                >
+                  <ImageOrPlaceholder uri={recipe.image} className="h-12 w-12 rounded-xl bg-[#FAF7F4]" />
+                  <View className="ml-3 flex-1">
+                    <Text className="font-semibold text-[#2B2320]" numberOfLines={1}>
+                      {recipe.title}
+                    </Text>
+                    <Text className="text-xs text-[#9C9088]">
+                      {recipe.category ?? "Uncategorized"} ·{" "}
+                      {recipe.calories ?? recipe.nutritions?.calories ?? 0} kcal
+                    </Text>
+                  </View>
+                  {addingId === recipe.id ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Ionicons name="add-circle-outline" size={22} color={colors.primary} />
+                  )}
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
+        </>
       )}
 
       <Pressable

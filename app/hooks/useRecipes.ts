@@ -22,12 +22,15 @@ export function mapRecipeRow(row: any): RecipeRow {
     steps: parseJsonColumn<string[]>(row.steps),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
   };
 }
 
 function useRecipesNative(userId: string | null | undefined): RecipeRow[] {
+  // Archived (soft-deleted) recipes are excluded, matching the web/REST list
+  // endpoint — see app/api/recipes+api.ts.
   const { data } = useQuery<any>(
-    'SELECT * FROM recipes WHERE user_id = ? ORDER BY created_at DESC',
+    'SELECT * FROM recipes WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC',
     [userId ?? '']
   );
 

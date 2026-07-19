@@ -29,6 +29,7 @@
     "@powersync/react": "^1.10.0",
     "@powersync/react-native": "^1.35.9",
     "@powersync/web": "^1.39.0",
+    "@react-native-community/netinfo": "^12.0.1",
     "@react-native-community/slider": "5.2.0",
     "@react-navigation/native": "^7.1.6",
     "@reduxjs/toolkit": "^2.12.0",

@@ -26,10 +26,33 @@ export function mapMealRow(row: any): MealRow {
   };
 }
 
+// Calories/nutrition always come live from the linked recipe (falling back to
+// the meal's own stored snapshot for legacy recipe-less rows) — meal's job is
+// just to log what/when/whether-eaten, not to own a separate copy of macros
+// that can drift from the recipe.
+export const MEAL_SELECT = `
+  SELECT
+    meal.id as id,
+    meal.user_id as user_id,
+    meal.recipe_id as recipe_id,
+    meal.title as title,
+    meal.category as category,
+    COALESCE(recipes.calories, meal.calories) as calories,
+    meal.image_url as image_url,
+    meal.completed as completed,
+    meal.meal_date as meal_date,
+    COALESCE(recipes.nutritions, meal.nutritions) as nutritions,
+    meal.ingredients as ingredients,
+    meal.created_at as created_at,
+    meal.updated_at as updated_at
+  FROM meal
+  LEFT JOIN recipes ON recipes.id = meal.recipe_id
+`;
+
 function useMealsForDateNative(userId: string | null | undefined, date?: string): MealRow[] {
   const targetDate = date ?? localIsoDate();
   const { data } = useQuery<any>(
-    'SELECT * FROM meal WHERE user_id = ? AND meal_date = ? ORDER BY created_at',
+    `${MEAL_SELECT} WHERE meal.user_id = ? AND meal.meal_date = ? ORDER BY meal.created_at`,
     [userId ?? '', targetDate]
   );
 

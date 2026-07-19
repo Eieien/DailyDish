@@ -46,7 +46,13 @@ export async function PATCH(request: Request, { id }: Record<string, string>) {
 }
 
 export async function DELETE(request: Request, { id }: Record<string, string>) {
-  const [row] = await dbInstance.delete(recipes).where(eq(recipes.id, id)).returning();
+  // Soft delete — recipes are the source of truth every meal is backed by,
+  // so archiving (not removing the row) keeps past meals' history intact.
+  const [row] = await dbInstance
+    .update(recipes)
+    .set({ deletedAt: new Date() })
+    .where(eq(recipes.id, id))
+    .returning();
 
   if (!row) {
     return Response.json({ error: "Recipe not found" }, { status: 404 });

@@ -163,15 +163,27 @@ export default function AddRecipeScreen() {
   };
 
   const onAiEstimate = async () => {
-    if (!recipe.trim()) {
-      Alert.alert("Recipe name required", "Enter a recipe name first so AI has something to estimate from.");
+    const cleanedIngredients = ingredients.map((i) => i.trim()).filter(Boolean);
+    const cleanedSteps = steps.map((s) => s.trim()).filter(Boolean);
+
+    if (!recipe.trim() || cleanedIngredients.length === 0 || cleanedSteps.length === 0) {
+      Alert.alert(
+        "More info needed",
+        "Please fill in the recipe name, at least one ingredient, and at least one step before using AI Estimate."
+      );
       return;
     }
 
     setEstimating(true);
     try {
-      const cleanedIngredients = ingredients.map((i) => i.trim()).filter(Boolean);
-      const result = await estimateNutrition(recipe.trim(), cleanedIngredients);
+      const result = await estimateNutrition(recipe.trim(), cleanedIngredients, cleanedSteps);
+      if (!result.recognized) {
+        Alert.alert(
+          "Couldn't recognize that food",
+          "AI doesn't recognize this as an identifiable dish. Please check the name/ingredients/steps, or enter nutrition manually."
+        );
+        return;
+      }
       setCalories(String(result.calories));
       setProtein(String(result.protein));
       setFat(String(result.fat));

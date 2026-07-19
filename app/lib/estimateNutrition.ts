@@ -1,4 +1,5 @@
 export type NutritionEstimate = {
+  recognized: boolean;
   calories: number;
   protein: number;
   fat: number;
@@ -7,12 +8,13 @@ export type NutritionEstimate = {
 
 export async function estimateNutrition(
   title: string,
-  ingredients: string[]
+  ingredients: string[],
+  steps: string[]
 ): Promise<NutritionEstimate> {
   const res = await fetch("/api/estimate-nutrition", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title, ingredients }),
+    body: JSON.stringify({ title, ingredients, steps }),
   });
 
   if (!res.ok) {

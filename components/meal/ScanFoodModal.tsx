@@ -9,7 +9,7 @@ import { uploadImage } from "@/app/lib/upload";
 import { estimateNutritionFromImage, type FoodScanEstimate } from "@/app/lib/estimateNutrition";
 import { localIsoDate } from "@/app/lib/meals";
 import type { MealSlot } from "@/data/types";
-import { insertMealLocal } from "@/app/powersync/writes";
+import { insertMealLocal, insertRecipeLocal } from "@/app/powersync/writes";
 import { ImageOrPlaceholder } from "@/components/ui/ImageOrPlaceholder";
 
 const CATEGORIES: MealSlot[] = ["Breakfast", "Lunch", "Dinner", "Snacks"];
@@ -67,6 +67,14 @@ function ScanFoodModalContent({ userId, onClose, onAdded }: Omit<Props, "visible
 
     try {
       const estimate = await estimateNutritionFromImage(asset.base64!, asset.mimeType ?? "image/jpeg");
+      if (!estimate.recognized) {
+        Alert.alert(
+          "Couldn't identify food",
+          "That doesn't look like a recognizable food photo. Please try again with a clearer picture."
+        );
+        setStage("capture");
+        return;
+      }
       setFoodName(estimate.foodName);
       setNutrition(estimate);
       setStage("confirm");
@@ -90,21 +98,36 @@ function ScanFoodModalContent({ userId, onClose, onAdded }: Omit<Props, "visible
 
     try {
       const photoUrl = imageUri ? await uploadImage(imageUri, "meals").catch(() => null) : null;
+      const title = foodName.trim() || "Scanned meal";
+      const nutritions = {
+        calories: nutrition.calories,
+        protein: nutrition.protein,
+        fat: nutrition.fat,
+        carbs: nutrition.carbs,
+      };
+
+      // Every meal is backed by a recipe — scanning food with no existing
+      // recipe selected auto-creates one (so it's also reusable later from
+      // My Recipes), then logs the meal against it.
+      const recipeId = await insertRecipeLocal({
+        userId,
+        title,
+        category,
+        image: photoUrl,
+        calories: nutrition.calories,
+        nutritions,
+      });
 
       await insertMealLocal({
         userId,
-        title: foodName.trim() || "Scanned meal",
+        recipeId,
+        title,
         category,
         calories: nutrition.calories,
         imageUrl: photoUrl,
         completed: true,
         mealDate: localIsoDate(),
-        nutritions: {
-          calories: nutrition.calories,
-          protein: nutrition.protein,
-          fat: nutrition.fat,
-          carbs: nutrition.carbs,
-        },
+        nutritions,
       });
       onAdded();
       onClose();

@@ -49,11 +49,13 @@ export async function POST(request: Request) {
     }
 
     const parsed = JSON.parse(text);
+    const recognized = parsed.recognized !== false;
     return Response.json({
+      recognized,
       foodName:
-        typeof parsed.foodName === 'string' && parsed.foodName.trim()
+        recognized && typeof parsed.foodName === 'string' && parsed.foodName.trim()
           ? parsed.foodName.trim()
-          : 'Scanned meal',
+          : '',
       calories: Math.round(Number(parsed.calories) || 0),
       protein: Math.round(Number(parsed.protein) || 0),
       fat: Math.round(Number(parsed.fat) || 0),

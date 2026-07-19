@@ -5,7 +5,7 @@ import type { MealRow } from './meals';
 import { localIsoDate } from './meals';
 import type { RecipeRow } from './recipes';
 import { mapUserRow } from '../hooks/useUserProfile';
-import { mapMealRow } from '../hooks/useMealsForDate';
+import { mapMealRow, MEAL_SELECT } from '../hooks/useMealsForDate';
 import { mapRecipeRow } from '../hooks/useRecipes';
 
 function mealCalories(meal: MealRow): number {
@@ -36,14 +36,14 @@ export async function fetchLocalUserContext(
   if (!profileRow) return '';
 
   const recipeRows = await db.getAll<any>(
-    'SELECT * FROM recipes WHERE user_id = ? ORDER BY created_at DESC',
+    'SELECT * FROM recipes WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC',
     [userId]
   );
 
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - HISTORY_WINDOW_DAYS);
   const mealRows = await db.getAll<any>(
-    'SELECT * FROM meal WHERE user_id = ? AND meal_date >= ? ORDER BY meal_date DESC, created_at',
+    `${MEAL_SELECT} WHERE meal.user_id = ? AND meal.meal_date >= ? ORDER BY meal.meal_date DESC, meal.created_at`,
     [userId, localIsoDate(cutoff)]
   );
 

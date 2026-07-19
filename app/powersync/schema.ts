@@ -25,6 +25,7 @@ const recipes = new Table(
     steps: column.text,
     created_at: column.text,
     updated_at: column.text,
+    deleted_at: column.text,
   },
   { indexes: { user: ['user_id'] } }
 );

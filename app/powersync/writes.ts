@@ -165,13 +165,19 @@ export async function updateRecipeLocal(id: string, patch: UpdateRecipeInput): P
   await buildUpdate('recipes', sets, params, id);
 }
 
+// Soft delete — archives the recipe (deleted_at set) rather than removing
+// the row, since meals are always backed by a recipe now and shouldn't lose
+// their history if the recipe they came from gets "deleted".
 export async function deleteRecipeLocal(id: string): Promise<void> {
   if (IS_WEB) {
     await deleteRecipe(id);
     notifyDataChanged();
     return;
   }
-  await powersync.execute('DELETE FROM recipes WHERE id = ?', [id]);
+  await powersync.execute('UPDATE recipes SET deleted_at = ? WHERE id = ?', [
+    new Date().toISOString(),
+    id,
+  ]);
 }
 
 export type UpdateUserLocalInput = Partial<
