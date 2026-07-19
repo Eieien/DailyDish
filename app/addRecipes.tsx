@@ -328,6 +328,7 @@ export default function AddRecipeScreen() {
                   setOpen={setOpen}
                   setValue={setValue}
                   setItems={setItems}
+                  listMode="SCROLLVIEW"
                   zIndex={3000}
                   zIndexInverse={1000}
                   style={{
