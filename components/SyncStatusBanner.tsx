@@ -1,9 +1,26 @@
+import { useEffect } from "react";
 import { Platform, View, Text } from "react-native";
 import { useStatus } from "@powersync/react";
 
 function NativeSyncStatusBanner() {
   const status = useStatus();
   const pending = status?.dataFlowStatus?.uploading ?? false;
+
+  useEffect(() => {
+    if (!status) return;
+    console.log(
+      '[PowerSync] status:',
+      JSON.stringify({
+        connected: status.connected,
+        connecting: status.connecting,
+        hasSynced: status.hasSynced,
+        downloading: status.dataFlowStatus?.downloading,
+        uploading: status.dataFlowStatus?.uploading,
+        downloadError: status.dataFlowStatus?.downloadError?.message ?? status.dataFlowStatus?.downloadError,
+        uploadError: status.dataFlowStatus?.uploadError?.message ?? status.dataFlowStatus?.uploadError,
+      })
+    );
+  }, [status]);
 
   if (status?.connected && !pending) return null;
 
