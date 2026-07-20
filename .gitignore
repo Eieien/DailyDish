@@ -30,3 +30,4 @@ android
 .agents/skills/
 .agents/skills/clerk-cli/
 .agents/skills/clerk-custom-ui/
+package-lock.json
