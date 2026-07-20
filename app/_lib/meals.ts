@@ -1,4 +1,5 @@
 import type { MealEntry, MealSlot, Macro } from "../../data/types";
+import { apiUrl } from "./apiClient";
 
 export type MealRow = {
   id: string;
@@ -22,7 +23,7 @@ export function localIsoDate(date: Date = new Date()): string {
 
 export async function getMealsForDate(userId: string, date?: string): Promise<MealRow[]> {
   const params = new URLSearchParams({ userId, date: date ?? localIsoDate() });
-  const res = await fetch(`/api/meals?${params.toString()}`);
+  const res = await fetch(apiUrl(`/api/meals?${params.toString()}`));
 
   if (!res.ok) {
     throw new Error("Failed to fetch meals");
@@ -46,7 +47,7 @@ export type CreateMealInput = {
 };
 
 export async function createMeal(payload: CreateMealInput): Promise<MealRow> {
-  const res = await fetch("/api/meals", {
+  const res = await fetch(apiUrl("/api/meals"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -70,7 +71,7 @@ export type UpdateMealInput = Partial<{
 }>;
 
 export async function updateMeal(id: string, patch: UpdateMealInput): Promise<MealRow> {
-  const res = await fetch(`/api/meals/${id}`, {
+  const res = await fetch(apiUrl(`/api/meals/${id}`), {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
@@ -88,7 +89,7 @@ export async function setMealCompleted(id: string, completed: boolean): Promise<
 }
 
 export async function deleteMeal(id: string): Promise<void> {
-  const res = await fetch(`/api/meals/${id}`, { method: "DELETE" });
+  const res = await fetch(apiUrl(`/api/meals/${id}`), { method: "DELETE" });
 
   if (!res.ok) {
     throw new Error("Failed to delete meal");
@@ -106,7 +107,7 @@ export type DayHistory = {
 
 export async function getMealHistory(userId: string, days = 14): Promise<DayHistory[]> {
   const params = new URLSearchParams({ userId, days: String(days) });
-  const res = await fetch(`/api/meals/history?${params.toString()}`);
+  const res = await fetch(apiUrl(`/api/meals/history?${params.toString()}`));
 
   if (!res.ok) {
     throw new Error("Failed to fetch meal history");

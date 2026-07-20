@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiClient";
+
 export type NutritionEstimate = {
   recognized: boolean;
   calories: number;
@@ -11,7 +13,7 @@ export async function estimateNutrition(
   ingredients: string[],
   steps: string[]
 ): Promise<NutritionEstimate> {
-  const res = await fetch("/api/estimate-nutrition", {
+  const res = await fetch(apiUrl("/api/estimate-nutrition"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, ingredients, steps }),
@@ -33,7 +35,7 @@ export async function estimateNutritionFromImage(
   imageBase64: string,
   mimeType: string
 ): Promise<FoodScanEstimate> {
-  const res = await fetch("/api/estimate-nutrition-from-image", {
+  const res = await fetch(apiUrl("/api/estimate-nutrition-from-image"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ imageBase64, mimeType }),

@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiClient";
+
 export type ChatRole = "user" | "assistant" | "system";
 
 export type SessionRow = {
@@ -17,7 +19,7 @@ export type ChatMessageRow = {
 };
 
 export async function createSession(userId: string, title?: string): Promise<SessionRow> {
-  const res = await fetch("/api/sessions", {
+  const res = await fetch(apiUrl("/api/sessions"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, title }),
@@ -31,7 +33,7 @@ export async function createSession(userId: string, title?: string): Promise<Ses
 }
 
 export async function listSessions(userId: string): Promise<SessionRow[]> {
-  const res = await fetch(`/api/sessions?userId=${encodeURIComponent(userId)}`);
+  const res = await fetch(apiUrl(`/api/sessions?userId=${encodeURIComponent(userId)}`));
 
   if (!res.ok) {
     throw new Error("Failed to fetch chat sessions");
@@ -43,7 +45,7 @@ export async function listSessions(userId: string): Promise<SessionRow[]> {
 export async function getSession(
   id: string
 ): Promise<{ session: SessionRow; messages: ChatMessageRow[] } | null> {
-  const res = await fetch(`/api/sessions/${id}`);
+  const res = await fetch(apiUrl(`/api/sessions/${id}`));
 
   if (res.status === 404) {
     return null;
@@ -56,7 +58,7 @@ export async function getSession(
 }
 
 export async function updateSessionTitle(id: string, title: string): Promise<SessionRow> {
-  const res = await fetch(`/api/sessions/${id}`, {
+  const res = await fetch(apiUrl(`/api/sessions/${id}`), {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title }),
@@ -74,7 +76,7 @@ export async function appendMessage(
   role: ChatRole,
   message: string
 ): Promise<ChatMessageRow> {
-  const res = await fetch(`/api/sessions/${sessionId}/messages`, {
+  const res = await fetch(apiUrl(`/api/sessions/${sessionId}/messages`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ role, message }),

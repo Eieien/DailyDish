@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiClient";
+
 export type UploadFolder = "recipes" | "meals" | "avatars";
 
 export async function uploadImage(uri: string, folder: UploadFolder): Promise<string> {
@@ -8,7 +10,7 @@ export async function uploadImage(uri: string, folder: UploadFolder): Promise<st
   formData.append("file", blob, `photo.${ext}`);
   formData.append("folder", folder);
 
-  const res = await fetch("/api/upload", {
+  const res = await fetch(apiUrl("/api/upload"), {
     method: "POST",
     body: formData,
   });

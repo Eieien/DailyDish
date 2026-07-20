@@ -1,4 +1,5 @@
 import type { Recipe as RecipeCardData, Macro } from "../../data/types";
+import { apiUrl } from "./apiClient";
 
 export type RecipeRow = {
   id: string;
@@ -18,7 +19,7 @@ export type RecipeRow = {
 
 export async function getRecipes(userId?: string): Promise<RecipeRow[]> {
   const url = userId ? `/api/recipes?userId=${encodeURIComponent(userId)}` : "/api/recipes";
-  const res = await fetch(url);
+  const res = await fetch(apiUrl(url));
 
   if (!res.ok) {
     throw new Error("Failed to fetch recipes");
@@ -28,7 +29,7 @@ export async function getRecipes(userId?: string): Promise<RecipeRow[]> {
 }
 
 export async function getRecipeById(id: string): Promise<RecipeRow | null> {
-  const res = await fetch(`/api/recipes/${id}`);
+  const res = await fetch(apiUrl(`/api/recipes/${id}`));
 
   if (res.status === 404) {
     return null;
@@ -55,7 +56,7 @@ export type CreateRecipeInput = {
 };
 
 export async function createRecipe(payload: CreateRecipeInput): Promise<RecipeRow> {
-  const res = await fetch("/api/recipes", {
+  const res = await fetch(apiUrl("/api/recipes"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -80,7 +81,7 @@ export type UpdateRecipeInput = Partial<{
 }>;
 
 export async function updateRecipe(id: string, patch: UpdateRecipeInput): Promise<RecipeRow> {
-  const res = await fetch(`/api/recipes/${id}`, {
+  const res = await fetch(apiUrl(`/api/recipes/${id}`), {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patch),
@@ -94,7 +95,7 @@ export async function updateRecipe(id: string, patch: UpdateRecipeInput): Promis
 }
 
 export async function deleteRecipe(id: string): Promise<void> {
-  const res = await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+  const res = await fetch(apiUrl(`/api/recipes/${id}`), { method: "DELETE" });
 
   if (!res.ok) {
     throw new Error("Failed to delete recipe");

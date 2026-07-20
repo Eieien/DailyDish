@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiClient";
+
 export type Units = "metric" | "imperial";
 
 export type UserProfile = {
@@ -14,7 +16,7 @@ export type UserProfile = {
 };
 
 export async function getUsers(): Promise<UserProfile[]> {
-  const res = await fetch("/api/users");
+  const res = await fetch(apiUrl("/api/users"));
 
   if (!res.ok) {
     throw new Error("Failed to fetch users");
@@ -24,7 +26,7 @@ export async function getUsers(): Promise<UserProfile[]> {
 }
 
 export async function getUser(id: string): Promise<UserProfile | null> {
-  const res = await fetch(`/api/users/${id}`);
+  const res = await fetch(apiUrl(`/api/users/${id}`));
 
   if (res.status === 404) {
     return null;
@@ -38,7 +40,7 @@ export async function getUser(id: string): Promise<UserProfile | null> {
 }
 
 export async function postUsers(request: { id: string; name: string }): Promise<UserProfile> {
-  const res = await fetch("/api/users", {
+  const res = await fetch(apiUrl("/api/users"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -69,7 +71,7 @@ export async function updateUser(
     >
   >
 ): Promise<UserProfile> {
-  const res = await fetch(`/api/users/${id}`, {
+  const res = await fetch(apiUrl(`/api/users/${id}`), {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
