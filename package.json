@@ -2,6 +2,9 @@
   "name": "DailyDish",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "android": "expo run:android",
     "ios": "expo run:ios",
