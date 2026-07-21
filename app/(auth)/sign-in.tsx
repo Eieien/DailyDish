@@ -31,9 +31,9 @@ export default function SignInScreen() {
   const { isSignedIn } = useAuth();
 
   useEffect(() => {
-    if (step === "2fa") {
-      router.push("/verify-2fa");
-    }
+    // if (step === "2fa") {
+    //   router.push("/verify-2fa");
+    // }
 
     if (step === "complete") {
       router.replace("/(tabs)");
@@ -58,21 +58,21 @@ export default function SignInScreen() {
         password: password,
       });
 
-      if (res.status === "needs_second_factor") {
-        const emailFactor = res.supportedSecondFactors?.find(
-          (f) => f.strategy === "email_code"
-        );
+      // if (res.status === "needs_second_factor") {
+      //   const emailFactor = res.supportedSecondFactors?.find(
+      //     (f) => f.strategy === "email_code"
+      //   );
 
-        if (!emailFactor) return;
+      //   if (!emailFactor) return;
 
-        await signIn.prepareSecondFactor({
-          strategy: "email_code",
-          emailAddressId: emailFactor.emailAddressId,
-        });
+      //   await signIn.prepareSecondFactor({
+      //     strategy: "email_code",
+      //     emailAddressId: emailFactor.emailAddressId,
+      //   });
 
-        setStep("2fa");
-        return;
-      }
+      //   setStep("2fa");
+      //   return;
+      // }
 
       if (res.status === "complete") {
         if (setActive) {
