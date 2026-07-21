@@ -99,6 +99,7 @@ export const chatMessages = pgTable(
       .references(() => sessions.id, { onDelete: 'cascade' }),
     role: text('role').notNull(),
     message: text('message').notNull(),
+    imageUrl: text('image_url'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams } from 'expo-router';
 import { usePowerSync } from '@powersync/react';
+import * as ImagePicker from 'expo-image-picker';
 
 import {
   ChatHeader,
@@ -14,6 +15,8 @@ import {
   TypingIndicator,
 } from '../components/chat';
 import { sendChatMessage } from './_lib/ai';
+import { estimateNutritionFromImage, type FoodScanEstimate } from './_lib/estimateNutrition';
+import { uploadImage } from './_lib/upload';
 import {
   appendMessage,
   createSession,
@@ -32,7 +35,26 @@ import {
   markRecapShown,
 } from './_lib/dailyRecap';
 import { colors } from '@/constants/theme';
+import { Alert } from '@/lib/alert';
 import type { ChatMessage } from './_types/chat';
+
+const SCAN_ACTION_LABEL = 'Scan/Estimate food';
+
+function buildFoodScanReply(estimate: FoodScanEstimate): string {
+  if (!estimate.recognized) {
+    return "I couldn't identify a specific food in that photo. Try a clearer picture, or tell me what it is and I can estimate from a description instead.";
+  }
+
+  return [
+    `**${estimate.foodName}** (estimated)`,
+    `- Calories: ${estimate.calories} kcal`,
+    `- Protein: ${estimate.protein}g`,
+    `- Fat: ${estimate.fat}g`,
+    `- Carbs: ${estimate.carbs}g`,
+    '',
+    'These are approximate — actual values depend on portion size and ingredients.',
+  ].join('\n');
+}
 
 const GREETING_TEXT = "Hi! I'm your DailyDish AI assistant. How can I help you today?";
 const IS_NATIVE = Platform.OS !== 'web';
@@ -73,11 +95,14 @@ export default function Chat() {
   useEffect(() => {
     let cancelled = false;
 
-    const loadMessagesFrom = (rows: { id: string; role: string; message: string }[]) =>
+    const loadMessagesFrom = (
+      rows: { id: string; role: string; message: string; imageUrl?: string | null }[]
+    ) =>
       rows.map((m) => ({
         id: m.id,
         role: (m.role === 'user' ? 'user' : 'assistant') as ChatMessage['role'],
         text: m.message,
+        imageUri: m.imageUrl ?? undefined,
       }));
 
     const maybeAppendRecap = async (activeSessionId: string) => {
@@ -171,6 +196,62 @@ export default function Chat() {
     }
   };
 
+  const handleScanFood = async () => {
+    if (isSending || !sessionId || !isOnline) return;
+
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Permission to access the camera is required.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({ base64: true, quality: 0.6 });
+    if (result.canceled || !result.assets[0]?.base64) return;
+
+    const asset = result.assets[0];
+    const userMessage: ChatMessage = {
+      id: nextId(),
+      role: 'user',
+      text: '📷 Photo of food',
+      imageUri: asset.uri,
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsSending(true);
+    scrollToEnd();
+
+    if (!titled) {
+      setTitled(true);
+      updateSessionTitle(sessionId, 'Food scan').catch(() => {});
+    }
+
+    try {
+      const [uploadedUrl, estimate] = await Promise.all([
+        uploadImage(asset.uri, 'chat').catch(() => null),
+        estimateNutritionFromImage(asset.base64!, asset.mimeType ?? 'image/jpeg'),
+      ]);
+      appendMessage(sessionId, 'user', userMessage.text, uploadedUrl).catch(() => {});
+
+      const reply = buildFoodScanReply(estimate);
+      setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', text: reply }]);
+      appendMessage(sessionId, 'assistant', reply).catch(() => {});
+    } catch (error) {
+      appendMessage(sessionId, 'user', userMessage.text).catch(() => {});
+      const text = error instanceof Error ? error.message : "Couldn't identify food from that photo.";
+      setMessages((prev) => [...prev, { id: nextId(), role: 'assistant', text }]);
+    } finally {
+      setIsSending(false);
+      scrollToEnd();
+    }
+  };
+
+  const handleQuickAction = (label: string) => {
+    if (label === SCAN_ACTION_LABEL) {
+      handleScanFood().catch(() => {});
+      return;
+    }
+    handleSend(label);
+  };
+
   return (
     <View className="flex-1 bg-neutral" style={{ paddingTop: insets.top }}>
       <ChatHeader />
@@ -206,7 +287,7 @@ export default function Chat() {
         </ScrollView>
 
         <View className="gap-2 px-2 pt-2" style={{ paddingBottom: insets.bottom + 8 }}>
-          <ChatQuickActions onAction={handleSend} />
+          <ChatQuickActions onAction={handleQuickAction} />
           <ChatInputBar onSend={handleSend} disabled={isSending || !sessionId || !isOnline} />
         </View>
       </KeyboardAvoidingView>

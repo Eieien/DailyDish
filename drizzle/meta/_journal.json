@@ -50,6 +50,13 @@
       "when": 1784468281951,
       "tag": "0006_puzzling_scrambler",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784614724422,
+      "tag": "0007_mixed_pandemic",
+      "breakpoints": true
     }
   ]
 }

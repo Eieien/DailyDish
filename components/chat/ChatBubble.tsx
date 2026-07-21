@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 
 import type { ChatMessage } from '@/app/_types/chat';
 import { BotAvatar } from './BotAvatar';
@@ -15,6 +15,13 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
     return (
       <View className="mb-4 flex-row justify-end">
         <View className="max-w-[78%] rounded-3xl rounded-tr-md bg-primary/25 px-4 py-3">
+          {message.imageUri ? (
+            <Image
+              source={{ uri: message.imageUri }}
+              className="mb-2 h-40 w-56 rounded-2xl"
+              resizeMode="cover"
+            />
+          ) : null}
           <Text className="font-urbanist-medium text-[15px] leading-5 text-ink">
             {message.text}
           </Text>

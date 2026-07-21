@@ -15,12 +15,15 @@ export async function POST(request: Request, { id }: Record<string, string>) {
     return Response.json({ error: "message is required" }, { status: 400 });
   }
 
+  const imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;
+
   const [message] = await dbInstance
     .insert(chatMessages)
     .values({
       sessionId: id,
       role: body.role,
       message: body.message,
+      imageUrl,
     })
     .returning();
 

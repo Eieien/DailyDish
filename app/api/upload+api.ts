@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { supabaseAdmin } from "../../db/supabaseAdmin";
 
 const BUCKET = "recipe-images";
-const ALLOWED_FOLDERS = ["recipes", "meals", "avatars"];
+const ALLOWED_FOLDERS = ["recipes", "meals", "avatars", "chat"];
 
 export async function POST(request: Request) {
   // React Native's own FormData type (append/getAll/getParts only) shadows

@@ -1,6 +1,6 @@
 import { apiUrl } from "./apiClient";
 
-export type UploadFolder = "recipes" | "meals" | "avatars";
+export type UploadFolder = "recipes" | "meals" | "avatars" | "chat";
 
 export async function uploadImage(uri: string, folder: UploadFolder): Promise<string> {
   const blob = await (await fetch(uri)).blob();

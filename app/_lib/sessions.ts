@@ -15,6 +15,7 @@ export type ChatMessageRow = {
   sessionId: string;
   role: ChatRole;
   message: string;
+  imageUrl: string | null;
   createdAt: string;
 };
 
@@ -74,12 +75,13 @@ export async function updateSessionTitle(id: string, title: string): Promise<Ses
 export async function appendMessage(
   sessionId: string,
   role: ChatRole,
-  message: string
+  message: string,
+  imageUrl?: string | null
 ): Promise<ChatMessageRow> {
   const res = await fetch(apiUrl(`/api/sessions/${sessionId}/messages`), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ role, message }),
+    body: JSON.stringify({ role, message, imageUrl }),
   });
 
   if (!res.ok) {

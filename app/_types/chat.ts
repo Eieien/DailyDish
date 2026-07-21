@@ -6,4 +6,6 @@ export interface ChatMessage {
   id: string;
   role: ChatRole;
   text: string;
+  /** Local-only photo preview for a scanned-food message — not persisted. */
+  imageUri?: string;
 }
