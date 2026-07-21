@@ -1,6 +1,6 @@
 import '../global.css';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
@@ -20,6 +20,7 @@ import { colors } from '@/constants/theme';
 import { AlertHost } from '@/components/ui/AlertHost';
 import { SyncStatusBanner } from '@/components/SyncStatusBanner';
 import { PowerSyncProvider } from './_powersync/PowerSyncProvider';
+import { useIsOnline } from './_hooks/useIsOnline';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -33,9 +34,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const isOnline = useIsOnline();
+
+  // Clerk can load its locally cached token instantly (isLoaded: true) even
+  // offline, but it needs a network round-trip to *confirm* that cached
+  // session is still valid — until then isSignedIn reads false, even for a
+  // device that really is signed in. Redirecting to sign-in on that
+  // unconfirmed signal is wrong twice over: it dumps the user on a login
+  // form they can't use offline anyway, and once connectivity returns,
+  // Clerk reconciles the real session and throws a "session already exists"
+  // error on that same screen. So: while offline and not yet confirmed
+  // signed in, just wait — don't treat "unconfirmed" as "signed out".
+  const authUnresolved = !isOnline && !isSignedIn;
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || authUnresolved) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const isPublicAuthRoute = inAuthGroup && PUBLIC_AUTH_ROUTES.includes(segments[1] ?? '');
@@ -45,12 +58,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     } else if (isSignedIn && isPublicAuthRoute) {
       router.replace('/(tabs)');
     }
-  }, [isLoaded, isSignedIn, segments, router]);
+  }, [isLoaded, isSignedIn, authUnresolved, segments, router]);
 
-  if (!isLoaded) {
+  if (!isLoaded || authUnresolved) {
     return (
-      <View className="flex-1 items-center justify-center bg-neutral">
+      <View className="flex-1 items-center justify-center gap-3 bg-neutral">
         <ActivityIndicator size="large" color={colors.primary} />
+        {authUnresolved ? (
+          <Text className="font-urbanist text-sm text-muted">
+            Waiting for a connection to sign you in…
+          </Text>
+        ) : null}
       </View>
     );
   }

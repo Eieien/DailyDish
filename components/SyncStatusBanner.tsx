@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { Platform, View, Text } from "react-native";
 import { useStatus } from "@powersync/react";
+import { useAuth } from "@clerk/clerk-expo";
 
 function NativeSyncStatusBanner() {
+  const { isSignedIn } = useAuth();
   const status = useStatus();
   const pending = status?.dataFlowStatus?.uploading ?? false;
 
@@ -22,7 +24,10 @@ function NativeSyncStatusBanner() {
     );
   }, [status]);
 
-  if (status?.connected && !pending) return null;
+  // PowerSync only connects once signed in — showing "Offline" while not yet
+  // authenticated (e.g. on the sign-in screen) is a false alarm, not a real
+  // connectivity problem.
+  if (!isSignedIn || (status?.connected && !pending)) return null;
 
   return (
     <View className="items-center bg-[#2B2320] py-1.5">
