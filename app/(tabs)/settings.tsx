@@ -10,19 +10,11 @@ import SettingsSection from "../../components/settings/SettingsSection";
 import SettingsRow from "../../components/settings/SettingsRow";
 import EditFieldModal from "../../components/settings/EditFieldModal";
 import ChangePasswordModal from "../../components/settings/ChangePasswordModal";
-import InfoModal from "../../components/settings/InfoModal";
 
 import { useUserProfile } from "../_hooks/useUserProfile";
 import { updateUserLocal } from "../_powersync/writes";
 import { colors } from "@/constants/theme";
 import { Alert } from "@/lib/alert";
-
-const PLACEHOLDER_HELP =
-  "This is placeholder Help & Support content. Replace this with real support instructions (contact email, FAQ, or a link to a help center) before shipping.";
-const PLACEHOLDER_PRIVACY =
-  "This is placeholder Privacy Policy content. Replace this with your actual privacy policy before shipping.";
-const PLACEHOLDER_TERMS =
-  "This is placeholder Terms of Service content. Replace this with your actual terms before shipping.";
 
 export default function SettingsScreen() {
   const { signOut } = useClerk();
@@ -32,7 +24,6 @@ export default function SettingsScreen() {
 
   const [nameModalVisible, setNameModalVisible] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
-  const [infoModal, setInfoModal] = useState<"help" | "privacy" | "terms" | null>(null);
   const [saving, setSaving] = useState(false);
 
   const goBack = () => {
@@ -114,16 +105,6 @@ export default function SettingsScreen() {
           />
         </SettingsSection>
 
-        <SettingsSection title="About">
-          <SettingsRow label="Help & Support" onPress={() => setInfoModal("help")} />
-          <SettingsRow label="Privacy Policy" onPress={() => setInfoModal("privacy")} />
-          <SettingsRow
-            label="Terms of Service"
-            isLast
-            onPress={() => setInfoModal("terms")}
-          />
-        </SettingsSection>
-
         <View className="mx-5 mt-6 bg-white rounded-2xl overflow-hidden">
           <SettingsRow
             label="Log Out"
@@ -148,25 +129,6 @@ export default function SettingsScreen() {
       <ChangePasswordModal
         visible={passwordModalVisible}
         onClose={() => setPasswordModalVisible(false)}
-      />
-
-      <InfoModal
-        visible={infoModal === "help"}
-        title="Help & Support"
-        body={PLACEHOLDER_HELP}
-        onClose={() => setInfoModal(null)}
-      />
-      <InfoModal
-        visible={infoModal === "privacy"}
-        title="Privacy Policy"
-        body={PLACEHOLDER_PRIVACY}
-        onClose={() => setInfoModal(null)}
-      />
-      <InfoModal
-        visible={infoModal === "terms"}
-        title="Terms of Service"
-        body={PLACEHOLDER_TERMS}
-        onClose={() => setInfoModal(null)}
       />
     </SafeAreaView>
   );

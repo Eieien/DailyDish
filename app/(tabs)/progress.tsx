@@ -15,7 +15,6 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomNav from "../../components/BottomNav";
 import MealEditModal from "../../components/meal/MealEditModal";
 import AddMealModal from "../../components/meal/AddMealModal";
-import ScanFoodModal from "../../components/meal/ScanFoodModal";
 import { ImageOrPlaceholder } from "../../components/ui/ImageOrPlaceholder";
 
 import { localIsoDate } from "../_lib/meals";
@@ -57,7 +56,6 @@ export default function ProgressScreen() {
   const [selectedDate, setSelectedDate] = useState(() => parseIsoDate(dateParam) ?? new Date());
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
   const [addMealModalVisible, setAddMealModalVisible] = useState(false);
-  const [scanMealModalVisible, setScanMealModalVisible] = useState(false);
 
   // Sync selectedDate when the ?date= param changes (e.g. navigating in from
   // History while this screen is already mounted). Adjusted during render,
@@ -300,22 +298,13 @@ export default function ProgressScreen() {
                 {isToday ? "Today's Meals" : "Logged Meals"}
               </Text>
               {isToday ? (
-                <View className="flex-row items-center" style={{ gap: 8 }}>
-                  <Pressable
-                    onPress={() => setScanMealModalVisible(true)}
-                    hitSlop={8}
-                    className="w-8 h-8 rounded-full bg-white border border-[#EFE7E1] items-center justify-center shadow-sm active:opacity-80"
-                  >
-                    <Ionicons name="camera-outline" size={15} color="#D2601A" />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setAddMealModalVisible(true)}
-                    hitSlop={8}
-                    className="w-8 h-8 rounded-full bg-[#D2601A] items-center justify-center shadow-sm active:opacity-80"
-                  >
-                    <Ionicons name="add" size={18} color="#FFFFFF" />
-                  </Pressable>
-                </View>
+                <Pressable
+                  onPress={() => setAddMealModalVisible(true)}
+                  hitSlop={8}
+                  className="w-8 h-8 rounded-full bg-[#D2601A] items-center justify-center shadow-sm active:opacity-80"
+                >
+                  <Ionicons name="add" size={18} color="#FFFFFF" />
+                </Pressable>
               ) : null}
             </View>
 
@@ -436,13 +425,6 @@ export default function ProgressScreen() {
         userId={userId}
         onClose={() => setAddMealModalVisible(false)}
         onAdded={() => setAddMealModalVisible(false)}
-      />
-
-      <ScanFoodModal
-        visible={scanMealModalVisible}
-        userId={userId}
-        onClose={() => setScanMealModalVisible(false)}
-        onAdded={() => setScanMealModalVisible(false)}
       />
     </SafeAreaView>
   );

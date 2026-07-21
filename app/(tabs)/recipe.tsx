@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import SearchBar from "../../components/SearchBar";
 import RecipesSection from "../../components/RecipesSection";
 import BottomNav from "../../components/BottomNav";
+import { CategoryFilterModal, type CategoryFilter } from "../../components/recipe/CategoryFilterModal";
 
 import { Recipe } from "../../data/types";
 import { toRecipeCardData } from "../_lib/recipes";
@@ -15,8 +16,6 @@ import { deleteRecipeLocal } from "../_powersync/writes";
 import { useRecipes } from "../_hooks/useRecipes";
 import { Alert } from "@/lib/alert";
 
-const CATEGORY_FILTERS = ["All", "Breakfast", "Lunch", "Dinner", "Snacks"] as const;
-type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 type SortOrder = "az" | "za";
 
 export default function RecipeScreen() {
@@ -26,6 +25,7 @@ export default function RecipeScreen() {
   const rows = useRecipes(userId);
   const [category, setCategory] = useState<CategoryFilter>("All");
   const [sortOrder, setSortOrder] = useState<SortOrder>("az");
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   const visibleRecipes: Recipe[] = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -42,16 +42,6 @@ export default function RecipeScreen() {
 
     return sorted.map(toRecipeCardData);
   }, [rows, search, category, sortOrder]);
-
-  const onPressFilter = () => {
-    Alert.alert("Filter by category", undefined, [
-      ...CATEGORY_FILTERS.map((filter) => ({
-        text: filter,
-        onPress: () => setCategory(filter),
-      })),
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
 
   const onDeleteRecipe = (recipe: Recipe) => {
     Alert.alert("Delete recipe?", `"${recipe.title}" will be removed permanently.`, [
@@ -79,7 +69,11 @@ export default function RecipeScreen() {
           </Pressable>
         </View>
 
-        <SearchBar value={search} onChangeText={setSearch} onPressFilter={onPressFilter} />
+        <SearchBar
+          value={search}
+          onChangeText={setSearch}
+          onPressFilter={() => setFilterModalVisible(true)}
+        />
 
         <View className="flex-row items-center justify-between mt-3 px-5">
           {category !== "All" ? (
@@ -130,6 +124,13 @@ export default function RecipeScreen() {
 
         <BottomNav />
       </View>
+
+      <CategoryFilterModal
+        visible={filterModalVisible}
+        selected={category}
+        onClose={() => setFilterModalVisible(false)}
+        onSelect={setCategory}
+      />
     </SafeAreaView>
   );
 }

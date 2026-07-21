@@ -244,6 +244,19 @@ export default function Chat() {
     }
   };
 
+  const handleNewChat = async () => {
+    if (!userId || isSending) return;
+    try {
+      const session = await createSession(userId);
+      setSessionId(session.id);
+      setTitled(false);
+      setMessages([{ id: nextId(), role: 'assistant', text: GREETING_TEXT }]);
+      scrollToEnd();
+    } catch {
+      // Ignore — the user can just try the button again.
+    }
+  };
+
   const handleQuickAction = (label: string) => {
     if (label === SCAN_ACTION_LABEL) {
       handleScanFood().catch(() => {});
@@ -254,7 +267,7 @@ export default function Chat() {
 
   return (
     <View className="flex-1 bg-neutral" style={{ paddingTop: insets.top }}>
-      <ChatHeader />
+      <ChatHeader onNewChat={handleNewChat} />
 
       {!isOnline ? (
         <View className="mx-4 mt-2 flex-row items-center gap-2 rounded-2xl bg-[#F5E3D8] px-3 py-2">

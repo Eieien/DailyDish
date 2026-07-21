@@ -75,9 +75,9 @@ function AddMealModalContent({
       <Text className="text-base font-bold text-[#2B2320] mb-4">Add from My Recipes</Text>
 
       {recipes.length === 0 ? (
-        <View className="items-center py-8">
+        <View className="items-center justify-center gap-3 py-10">
           <Ionicons name="restaurant-outline" size={24} color={colors.muted} />
-          <Text className="mt-3 text-center text-sm text-[#9C9088]">
+          <Text className="text-center text-sm text-[#9C9088]">
             You don&apos;t have any recipes yet.{"\n"}Create one first to add it as a meal.
           </Text>
         </View>
@@ -162,12 +162,14 @@ function AddMealModalContent({
         </>
       )}
 
-      <Pressable
-        onPress={onClose}
-        className="mt-4 items-center rounded-full border border-[#E2DDD9] py-3 active:opacity-70"
-      >
-        <Text className="text-sm font-semibold text-[#9C9088]">Close</Text>
-      </Pressable>
+      <View className="mt-4 border-t border-[#F0E4DA] pt-4">
+        <Pressable
+          onPress={onClose}
+          className="items-center rounded-full border border-[#E2DDD9] py-3 active:opacity-70"
+        >
+          <Text className="text-sm font-semibold text-[#9C9088]">Close</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

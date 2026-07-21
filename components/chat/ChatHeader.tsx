@@ -4,7 +4,11 @@ import { router } from 'expo-router';
 
 import { colors } from '@/constants/theme';
 
-export const ChatHeader: React.FC = () => {
+interface ChatHeaderProps {
+  onNewChat?: () => void;
+}
+
+export const ChatHeader: React.FC<ChatHeaderProps> = ({ onNewChat }) => {
   const goBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -25,12 +29,23 @@ export const ChatHeader: React.FC = () => {
         <Text className="font-urbanist-bold text-lg text-ink">DailyDish AI</Text>
       </View>
 
-      <Pressable
-        onPress={() => router.push('/chatHistory')}
-        hitSlop={12}
-        className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
-        <Ionicons name="time-outline" size={20} color={colors.ink} />
-      </Pressable>
+      <View className="flex-row items-center gap-2">
+        {onNewChat ? (
+          <Pressable
+            onPress={onNewChat}
+            hitSlop={12}
+            className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
+            <Ionicons name="add-circle-outline" size={20} color={colors.ink} />
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          onPress={() => router.push('/chatHistory')}
+          hitSlop={12}
+          className="h-9 w-9 items-center justify-center rounded-full bg-surface shadow-sm active:opacity-70">
+          <Ionicons name="time-outline" size={20} color={colors.ink} />
+        </Pressable>
+      </View>
     </View>
   );
 };
