@@ -3,7 +3,9 @@ import * as SecureStore from 'expo-secure-store';
 
 import { getMealHistory, type DayHistory } from './meals';
 
-const RECAP_KEY_PREFIX = 'dailydish:lastRecapDate:';
+// expo-secure-store keys may only contain alphanumerics, ".", "-", and "_" —
+// no colons — so this can't use the more readable "dailydish:..." form.
+const RECAP_KEY_PREFIX = 'dailydish.lastRecapDate.';
 
 function todayIso(): string {
   return new Date().toLocaleDateString('en-CA');
